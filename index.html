@@ -1,0 +1,1478 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="robots" content="noindex, nofollow">
+<meta name="referrer" content="no-referrer">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DataWeave Marketing Dashboard</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.0/dist/chart.umd.js" integrity="sha384-iU8HYtnGQ8Cy4zl7gbNMOhsDTTKX02BTXptVP/vqAWIaTfM7isw76iyZCsjL2eVi" crossorigin="anonymous"></script>
+<style>
+:root { color-scheme: light; --bg:#f6f7fb; --card:#fff; --ink:#1a2233; --muted:#64708a; --line:#e5e8f0;
+  --blue:#2f6fed; --teal:#0ea5a4; --amber:#d97706; --red:#dc2626; --green:#16a34a; --violet:#7c3aed; }
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--ink);font-size:14px}
+.wrap{max-width:1200px;margin:0 auto;padding:20px 24px 48px}
+header.top{display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:8px;margin-bottom:16px}
+header.top h1{font-size:20px;font-weight:700}
+header.top .sub{color:var(--muted);font-size:12.5px}
+nav.tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:20px}
+nav.tabs button{border:1px solid var(--line);background:var(--card);color:var(--muted);padding:7px 14px;border-radius:20px;font-size:13px;cursor:pointer;font-weight:500}
+nav.tabs button.active{background:var(--blue);border-color:var(--blue);color:#fff}
+section.panel{display:none}section.panel.active{display:block}
+.grid{display:grid;gap:14px}
+.kpis{grid-template-columns:repeat(auto-fit,minmax(170px,1fr));margin-bottom:14px}
+.kpi{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 16px}
+.kpi .label{font-size:11.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:6px}
+.kpi .val{font-size:22px;font-weight:700}
+.kpi .delta{font-size:12px;margin-top:4px;font-weight:600}
+.up{color:var(--green)}.down{color:var(--red)}.flat{color:var(--muted)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px 18px;margin-bottom:14px}
+.card h3{font-size:14px;font-weight:700;margin-bottom:10px}
+.card h3.bar{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
+.card h4{font-size:12.5px;font-weight:700;margin:14px 0 6px;color:var(--muted);text-transform:uppercase;letter-spacing:.03em}
+.card h4:first-of-type{margin-top:0}
+.card .note{font-size:12px;color:var(--muted);margin-top:8px}
+.two{grid-template-columns:1fr 1fr}
+@media(max-width:820px){.two{grid-template-columns:1fr}}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;color:var(--muted);font-weight:600;font-size:11.5px;text-transform:uppercase;letter-spacing:.03em;padding:6px 8px;border-bottom:1px solid var(--line)}
+td{padding:7px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+tr:last-child td{border-bottom:none}
+td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
+tr.total td{font-weight:700;border-top:2px solid var(--line)}
+.pill{display:inline-block;padding:2px 9px;border-radius:12px;font-size:11.5px;font-weight:600}
+.pill.g{background:#e7f6ec;color:var(--green)}.pill.a{background:#fdf1e2;color:var(--amber)}
+.pill.b{background:#e8effc;color:var(--blue)}.pill.r{background:#fdeaea;color:var(--red)}
+.pill.v{background:#f1eafc;color:var(--violet)}
+.chartbox{position:relative;height:260px}.chartbox.tall{height:300px}
+ul.clean{list-style:none}ul.clean li{padding:5px 0 5px 16px;position:relative}
+ul.clean li::before{content:"";position:absolute;left:2px;top:12px;width:6px;height:6px;border-radius:50%;background:var(--blue)}
+.okr .proj{margin:8px 0 10px 2px}.okr .projname{font-weight:600;font-size:13px}
+ul.signals{list-style:none}
+ul.signals li{padding:6px 0;display:flex;gap:8px;align-items:flex-start;font-size:13px}
+ul.signals .tag{flex-shrink:0;margin-top:1px}
+.progress-wrap{margin:10px 0}
+.progress-wrap .lblrow{display:flex;justify-content:space-between;font-size:12.5px;margin-bottom:4px}
+.progress{background:#eef1f7;border-radius:8px;height:12px;position:relative;overflow:hidden}
+.progress .fill{height:100%;border-radius:8px}
+.progress .target{position:absolute;top:-2px;bottom:-2px;width:2px;background:var(--ink)}
+.footer-note{font-size:11.5px;color:var(--muted);margin-top:20px}
+.dark{background:#16181d!important;border-color:#16181d!important}
+.dark h3{color:#fff}.dark h3 .sub{color:#8b93a5;font-weight:500;font-size:12.5px}
+.dark th{color:#9aa3b5;border-bottom:1px solid #2a2e37}
+.dark td{color:#f2f4f8;border-bottom:1px solid #2a2e37;font-size:13.5px}
+.dark tr:last-child td{border-bottom:none}
+.dark tr.total td{border-top:2px solid #3a3f4b;font-weight:700}
+.stale{color:var(--red);font-weight:600}
+button.refresh{border:1px solid var(--line);background:#fff;color:var(--blue);padding:5px 11px;border-radius:8px;font-size:12.5px;cursor:pointer;font-weight:600;white-space:nowrap}
+button.refresh:hover{background:#f2f6ff}
+button.refresh:disabled{color:var(--muted);cursor:wait}
+.dark button.refresh{background:#22252d;border-color:#3a3f4b;color:#7fa4f5}
+select{font-size:13px;padding:5px 8px;border:1px solid var(--line);border-radius:8px;background:#fff;color:var(--ink)}
+.msg{font-size:12px;color:var(--muted);margin-top:8px}
+.src{font-size:11px;color:var(--muted)}
+.okr{margin:10px 0 4px;} .okr>strong{display:block;font-size:13px;margin-bottom:2px;} .okr ul{margin-top:2px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header class="top">
+  <h1>DataWeave · Marketing Function Dashboard</h1>
+  <span class="sub">FY 2026–27 · snapshots dated per section · refresh buttons pull fresh data per source</span>
+</header>
+
+<nav class="tabs" id="tabs">
+  <button data-t="overview" class="active">Overview</button>
+  <button data-t="leads">Leads &amp; Pipeline</button>
+  <button data-t="events">Events</button>
+  <button data-t="content">Content</button>
+  <button data-t="social">Social</button>
+  <button data-t="emailmkt">Email Marketing</button>
+  <button data-t="email">Signature</button>
+  <button data-t="website">Website &amp; SEO</button>
+  <button data-t="pmm">PMM, GTM &amp; Advocacy</button>
+  <button data-t="team">Team</button>
+</nav>
+
+<!-- OVERVIEW -->
+<section class="panel active" id="overview">
+  <div class="grid kpis">
+    <div class="kpi"><div class="label">Qualified leads FYTD</div><div class="val" id="ovLeads">—</div><div class="delta up" id="ovLeadsD">—</div></div>
+    <div class="kpi"><div class="label">Pipeline created FYTD</div><div class="val" id="ovPipe">—</div><div class="delta flat" id="ovPipeD">—</div></div>
+    <div class="kpi"><div class="label">Content views (cumulative)</div><div class="val" id="ovContent">—</div><div class="delta up">▲ 121% H2'25 → H1'26</div></div>
+    <div class="kpi"><div class="label">LinkedIn engagement rate</div><div class="val">10.6%</div><div class="delta down">▼ from 13.1% (JFM)</div></div>
+    <div class="kpi"><div class="label">AI Search Health</div><div class="val">77%</div><div class="delta flat">Target 80%</div></div>
+    <div class="kpi"><div class="label">Email open rate</div><div class="val" id="ovEmail">—</div><div class="delta flat" id="ovEmailD">—</div></div>
+  </div>
+  <div class="grid two">
+    <div class="card">
+      <h3>Qualified leads and pipeline by month</h3>
+      <div class="chartbox"><canvas id="chOv"></canvas></div>
+    </div>
+    <div class="card">
+      <h3>Function health at a glance</h3>
+      <table>
+        <tr><th>Function</th><th>Status</th><th>Headline</th></tr>
+        <tr><td>Leads</td><td><span class="pill g">On track</span></td><td id="hlLeads">—</td></tr>
+        <tr><td>Pipeline</td><td><span class="pill a">Watch</span></td><td id="hlPipe">—</td></tr>
+        <tr><td>Events</td><td><span class="pill g">On track</span></td><td id="hlEvents">—</td></tr>
+        <tr><td>Content</td><td><span class="pill a">Watch</span></td><td>Views +121% but nothing published since Jul 2</td></tr>
+        <tr><td>Social</td><td><span class="pill r">Declining</span></td><td>Cadence 20/mo → 6/mo; followers +882 vs +1,911</td></tr>
+        <tr><td>Email</td><td><span class="pill a">Watch</span></td><td>Warm segments 3x cold; ABM opens 3.6%</td></tr>
+        <tr><td>Website / SEO</td><td><span class="pill b">Improving</span></td><td>AI health 77% vs 80% target; llms.txt live</td></tr>
+        <tr><td>PMM / GTM</td><td><span class="pill b">In flight</span></td><td>Messaging Phase 1; battlecards in review</td></tr>
+        <tr><td>Advocacy</td><td><span class="pill g">Building</span></td><td>QVC G2 in; Simple Tire interview Aug 13</td></tr>
+      </table>
+      <div class="note">Overview shows the latest snapshot. Use the refresh buttons on each tab to pull fresh data from that tab's source.</div>
+    </div>
+  </div>
+</section>
+
+<!-- LEADS & PIPELINE -->
+<section class="panel" id="leads">
+  <div class="card">
+    <h3 class="bar"><span id="asofLeads">Source: HubSpot · snapshot Oct 5, 2026</span><button class="refresh" id="btnLeads">↻ Refresh from HubSpot</button></h3>
+    <div class="msg" id="msgLeads">Refresh re-pulls all qualified leads and new-business deals and recomputes every KPI, chart and cut below.</div>
+  </div>
+  <div class="grid kpis" id="kpiLeads"></div>
+  <div class="card">
+    <h3>Quarterly summary — leads, opportunities and pipeline</h3>
+    <div id="qSummary"></div>
+  </div>
+  <div class="grid two">
+    <div class="card">
+      <h3>Qualified leads by month, with conversions</h3>
+      <div class="chartbox"><canvas id="chLeads"></canvas></div>
+    </div>
+    <div class="card">
+      <h3>Pipeline created by month</h3>
+      <div class="chartbox"><canvas id="chPipe"></canvas></div>
+    </div>
+  </div>
+  <div class="grid two">
+    <div class="card">
+      <h3>Qualified leads · cuts</h3>
+      <div id="leadCuts"></div>
+    </div>
+    <div class="card">
+      <h3 class="bar"><span>Pipeline created · cuts</span><select id="aeFilter"></select></h3>
+      <div id="dealCuts"></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="note"><strong>Definitions</strong> · Qualified lead: contact with L1 Qualification Level set, dated by Lead Qualification Date, FY from Apr 1 2026. · Converted (Opps): Lead Status = Converted to Deal / Customer. · Pipeline: deals created on or after Apr 1 2026 with Deal Type in One Time / Recurring / Recurring DaaS and Business Type = New Business, excluding POCs and cross-sell/upsell. Amounts in USD. Deal AE = deal owner; deal channel = channel of the associated contact, deduplicated per deal.</div>
+  </div>
+</section>
+
+<!-- EVENTS -->
+<section class="panel" id="events">
+  <div class="card">
+    <h3 class="bar"><span id="asofEvents">Source: HubSpot · snapshot Oct 5, 2026</span><button class="refresh" id="btnEvents">↻ Refresh from HubSpot</button></h3>
+  <div class="note" style="margin:4px 0 10px;">Calendar (Aug 16 review): CRC eCommerce Summit done Aug 12–13 · Coming: RetailClub AI + Groceryshop (Sep 22–24), Stibo System Connect (Sep 28–30), NRF 2027 (Jan 10–12) · Declined: The Lead Summit, NRF Nexus, Annual Pricing &amp; RGM Summit, Connected Commerce Canada, NextGen Amsterdam</div>
+    <div class="msg" id="msgEvents">Refresh re-pulls the MGL/MRL/MQL funnel, the event-channel deals, and each deal's latest email date.</div>
+  </div>
+  <div class="card dark">
+    <h3>Event leads performance <span class="sub">FY 2026–2027</span></h3>
+    <div id="evFunnel"></div>
+  </div>
+  <div class="card">
+    <h3>Key deals from the events channel this FY</h3>
+    <div id="evDeals"></div>
+    <div class="note">New-business deals whose associated contact came through the Events or Hosted Events channel.</div>
+  </div>
+  <div class="card">
+    <h3>Signals from email history</h3>
+    <ul class="signals">
+      <li><span class="tag pill g">Positive</span><span>Stanley Black &amp; Decker: NDA executed Jul 16, prospect engaged procurement Jul 23, and a CEO meeting proposed for Aug 4 in Minneapolis. Clearest momentum in the set.</span></li>
+      <li><span class="tag pill g">Positive</span><span>Maxwood Furniture re-engaged twice unprompted and asked to bring channel managers into a demo, expanding the stakeholder group.</span></li>
+      <li><span class="tag pill r">Gap</span><span>Target SKU 360, the largest event deal at $360K, had nothing substantive on file since Jun 19 at Solutioned stage.</span></li>
+      <li><span class="tag pill r">Gap</span><span>Maxwood went silent after May 26 with no record of whether the May 29 demo happened; pricing was never discussed.</span></li>
+      <li><span class="tag pill r">Gap</span><span>Floor &amp; Decor's RFP has been promised since April but four follow-ups went unanswered; status is Deferred.</span></li>
+      <li><span class="tag pill r">Gap</span><span>Quicklizard has zero emails logged against an active partner engagement.</span></li>
+    </ul>
+    <div class="note">Thread analysis dated Jul 31, 2026. The refresh button updates the deal rows and last-email dates; ask me in chat to redo the full thread analysis.</div>
+  </div>
+  <div class="grid two">
+    <div class="card">
+      <h3>Upcoming events &amp; prep</h3>
+      <table>
+        <tr><th>Event</th><th>Status</th></tr>
+        <tr><td>RetailClubAI</td><td><span class="pill b">Prep underway</span></td></tr>
+        <tr><td>Groceryshop</td><td><span class="pill b">Prep underway</span></td></tr>
+        <tr><td>NACS</td><td><span class="pill b">Prep underway · lead-capture app bought Jul 28</span></td></tr>
+        <tr><td>CRC Ecommerce Summit</td><td><span class="pill b">San Diego, Aug 12–13</span></td></tr>
+      </table>
+      <div class="note">Completed: Shoptalk Spring, Digital Shelf Summit, GCC Roundtable June. Next GCC roundtable planned late Sep / early Oct.</div>
+    </div>
+    <div class="card">
+      <h3>Event evaluation pipeline</h3>
+      <table>
+        <tr><th>Event</th><th>Decision</th><th>Reason</th></tr>
+        <tr><td>The Lead Summit</td><td><span class="pill r">Not attending</span></td><td>Relevance</td></tr>
+        <tr><td>NRF Nexus</td><td><span class="pill r">Not attending</span></td><td>Cost</td></tr>
+        <tr><td>Consumer Pricing &amp; RGM Summit 2026</td><td><span class="pill a">Pending</span></td><td>Decision pending</td></tr>
+        <tr><td>Connected Commerce Summit Canada</td><td><span class="pill a">Evaluating</span></td><td>Eval ongoing</td></tr>
+        <tr><td>EU events incl. NextGen Amsterdam</td><td><span class="pill a">Evaluating</span></td><td>Your update due to Priyank/Prashant by Aug 7</td></tr>
+        <tr><td>Cleveland Research eCommerce Summit</td><td><span class="pill g">Attending</span></td><td>Aug 12–13</td></tr>
+        <tr><td>NRF 2027</td><td><span class="pill g">Attending</span></td><td>Booth paid Jul 31</td></tr>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- CONTENT -->
+<section class="panel" id="content">
+  <div class="card">
+    <h3 class="bar"><span id="asofContent">Source: Content performance tracker (Google Sheet) · snapshot Sep 28, 2026</span><button class="refresh" id="btnContent">↻ Refresh from Google Sheet</button></h3>
+    <div class="msg" id="msgContent">Refresh re-reads the tracker and updates views/users for the 13 tracked pieces plus the program total. Deeper re-analysis (new pieces, insights) needs me in chat.</div>
+  </div>
+  <div class="grid kpis">
+    <div class="kpi"><div class="label">2026 program views</div><div class="val" id="kContentTotal">3,679</div><div class="delta flat" id="kContentSub">13 pieces · to Jul 31</div></div>
+    <div class="kpi"><div class="label">Site-wide blog views</div><div class="val">18,063</div><div class="delta flat">10,351 active users · to Jul 31</div></div>
+    <div class="kpi"><div class="label">Views H2'25 → H1'26</div><div class="val">+121%</div><div class="delta up">1,126 → 2,488</div></div>
+    <div class="kpi"><div class="label">Avg views / blog YoY</div><div class="val">+71%</div><div class="delta up">123 → 210, on 33% fewer blogs</div></div>
+    <div class="kpi"><div class="label">Deepest read</div><div class="val">3m 02s</div><div class="delta flat">US Dairy case study</div></div>
+  </div>
+  <div class="grid two">
+    <div class="card">
+      <h3>Top content by views</h3>
+      <div class="chartbox tall"><canvas id="chContent"></canvas></div>
+    </div>
+    <div class="card">
+      <h3>Reach vs depth</h3>
+      <div class="chartbox tall"><canvas id="chDepth"></canvas></div>
+      <div class="note">Top-right is the goal. High-traffic blogs read shallow; case studies read deep but narrow.</div>
+    </div>
+  </div>
+  <div class="card">
+    <h3>Insights from the content tracker</h3>
+    <ul class="signals">
+      <li><span class="tag pill g">Positive</span><span>One blog carries the program: "AI Shopping Can't Scale" holds about a quarter of all 2026 program views and added 193 views in July alone.</span></li>
+      <li><span class="tag pill g">Positive</span><span>The DataWeave vs. Wiser page reached 736 views in ~10 weeks; 91% of its traffic is the US path.</span></li>
+      <li><span class="tag pill g">Positive</span><span>The whitepaper had its best month (60% of lifetime views in July, on DSS email pushes); "AI-Ready Foundation" is the quiet organic winner.</span></li>
+      <li><span class="tag pill g">Positive</span><span>Content converts: a Benefit Cosmetics contact went form-fill → MQL in 3 days → sales meeting. Mondelez, Apple, Kenvue, Nestlé, Bosch and Primark contacts are engaging.</span></li>
+      <li><span class="tag pill r">Gap</span><span>Publishing stalled after Prime Day (Jul 2). Explainability blog was re-angled in the Aug 5 content meeting; Human-in-the-Loop still unpublished.</span></li>
+      <li><span class="tag pill r">Gap</span><span>Reach and depth don't overlap: the two highest-traffic blogs average 9–16s per user; the deepest reads sit under 110 views.</span></li>
+      <li><span class="tag pill r">Gap</span><span>July's email push behind "Real-Time Competitive Intelligence" added 258 views at 0.1s engagement — likely campaign or bot skew.</span></li>
+    </ul>
+  </div>
+  <div class="grid two">
+    <div class="card">
+      <h3>2026 program detail</h3>
+      <div id="tblContent"></div>
+    </div>
+    <div>
+      <div class="card">
+        <h3>Period comparisons</h3>
+        <table>
+          <tr><th>Metric</th><th class="num">Jul–Dec 25</th><th class="num">Jan–Jun 26</th><th class="num">Change</th></tr>
+          <tr><td>Pieces published</td><td class="num">9</td><td class="num">12</td><td class="num up">▲ 33%</td></tr>
+          <tr><td>Total views</td><td class="num">1,126</td><td class="num">2,488</td><td class="num up">▲ 121%</td></tr>
+          <tr><td>Active users</td><td class="num">617</td><td class="num">1,023</td><td class="num up">▲ 66%</td></tr>
+          <tr><td>Avg views / piece</td><td class="num">125</td><td class="num">207</td><td class="num up">▲ 66%</td></tr>
+        </table>
+        <table style="margin-top:12px;">
+          <tr><th>YoY (Jan–Jun)</th><th class="num">2025</th><th class="num">2026</th><th class="num">Change</th></tr>
+          <tr><td>Blogs published</td><td class="num">12</td><td class="num">8</td><td class="num down">▼ 33%</td></tr>
+          <tr><td>Avg views / blog</td><td class="num">123</td><td class="num">210</td><td class="num up">▲ 71%</td></tr>
+          <tr><td>Total content views</td><td class="num">1,476</td><td class="num">2,488</td><td class="num up">▲ 69%</td></tr>
+        </table>
+      </div>
+      <div class="card">
+        <h3>Upcoming content</h3>
+        <table>
+          <tr><th>Title</th><th>Type</th><th>Owner</th><th>Status</th></tr>
+          <tr><td>Back-to-School 2026 analysis</td><td>Blog</td><td>Aditi + BA</td><td>Brief sent Aug 4</td></tr>
+          <tr><td>Enterprise AI explainability blog</td><td>Blog</td><td>Upasana / Aditi</td><td>Re-angled Aug 5</td></tr>
+          <tr><td>UK/Germany data-driven piece</td><td>Blog</td><td>Aditi</td><td>Due Sep 1</td></tr>
+          <tr><td>Podcast: Karthik &amp; Don Brett ep. 2</td><td>Podcast</td><td>You</td><td>Scheduling</td></tr>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div class="card"><div class="note"><strong>Source</strong> · <a href="https://docs.google.com/spreadsheets/d/1sHKm2eaQfsVITlooPhjLXHngoSpyqoLTNY6ZmN5tUYU/edit" target="_blank">Content performance tracker</a>. Engagement normalized to seconds.</div></div>
+</section>
+
+<!-- SOCIAL -->
+<section class="panel" id="social">
+  <div class="card">
+    <h3 class="bar"><span id="asofSocial">Source: Social media tracker (Google Sheet) · snapshot Sep 28, 2026</span><button class="refresh" id="btnSocial">↻ Refresh from Google Sheet</button></h3>
+    <div class="msg" id="msgSocial">Refresh attempts to update the quarter-comparison figures from the sheet. The monthly series and insights need a full re-analysis in chat, since the sheet's 16 tabs require heavy parsing.</div>
+  </div>
+  <div class="grid kpis">
+    <div class="kpi"><div class="label">LinkedIn followers</div><div class="val">49,384</div><div class="delta flat">X: 1,029 · YouTube: 36</div></div>
+    <div class="kpi"><div class="label">New followers (AMJ)</div><div class="val">882</div><div class="delta down">▼ 54% vs JFM (1,911)</div></div>
+    <div class="kpi"><div class="label">Engagement rate (AMJ)</div><div class="val">10.6%</div><div class="delta down">▼ from 13.1%, click-dominated</div></div>
+    <div class="kpi"><div class="label">Posting cadence</div><div class="val">~6/mo</div><div class="delta down">Jul, down from 20/mo in Q1</div></div>
+    <div class="kpi"><div class="label">X impressions (AMJ)</div><div class="val">622</div><div class="delta down">Under one median LinkedIn post</div></div>
+  </div>
+  <div class="grid two">
+    <div class="card">
+      <h3>LinkedIn impressions vs posting cadence</h3>
+      <div class="chartbox"><canvas id="chSocial"></canvas></div>
+      <div class="note">Impressions track cadence almost 1:1. Jun uses post-level data; Jul is through the 26th.</div>
+    </div>
+    <div class="card">
+      <h3>LinkedIn clicks by month</h3>
+      <div class="chartbox"><canvas id="chClicks"></canvas></div>
+      <div class="note">The March spike is one post: the Enterprise AI roundtable recap took 3,034 clicks alone.</div>
+    </div>
+  </div>
+  <div class="card">
+    <h3>Insights from the social tracker</h3>
+    <ul class="signals">
+      <li><span class="tag pill g">Positive</span><span>March 2026 was the best month on record (24,846 impressions, 5,426 clicks), driven by the Enterprise AI roundtable recap at 50.8% engagement rate.</span></li>
+      <li><span class="tag pill g">Positive</span><span>Per-post impressions rose ~54% QoQ (1,159 → 1,785) even as totals fell — the quality bet works per post.</span></li>
+      <li><span class="tag pill g">Positive</span><span>Exec advocacy is ~2.6x more efficient than the company page (58 vs ~22 interactions per post).</span></li>
+      <li><span class="tag pill r">Gap</span><span>Cadence collapsed: 20–22 posts/month Sep–Mar, then 9, 9, ~6. July paced ~12.8K impressions vs a 21.6K Q1 average.</span></li>
+      <li><span class="tag pill r">Gap</span><span>Follower growth halved and the audience skews heavily India (Bengaluru alone 44.6%) — a mismatch with the US-retail ICP.</span></li>
+      <li><span class="tag pill r">Gap</span><span>X is dormant (~32 impressions per tweet) and format tracking is broken (Content Type filled on 8 of 195 rows).</span></li>
+    </ul>
+  </div>
+  <div class="grid two">
+    <div class="card">
+      <h3>Top LinkedIn posts of 2026</h3>
+      <table>
+        <tr><th>Post</th><th>Date</th><th class="num">Impr.</th><th class="num">Clicks</th><th class="num">ER</th></tr>
+        <tr><td>Enterprise AI roundtable recap (Bangalore)</td><td>Mar 2</td><td class="num">6,310</td><td class="num">3,034</td><td class="num">50.8%</td></tr>
+        <tr><td>Agentic-shopper fireside chat recap</td><td>Jun 24</td><td class="num">5,607</td><td class="num">1,621</td><td class="num">30.4%</td></tr>
+        <tr><td>Annual planning offsite</td><td>Mar 5</td><td class="num">3,880</td><td class="num">1,682</td><td class="num">45.9%</td></tr>
+        <tr><td>NRF 2026 Big Show booth invite</td><td>Jan 11</td><td class="num">3,504</td><td class="num">323</td><td class="num">30.1%</td></tr>
+        <tr><td>Welcome Joanna</td><td>Jan 26</td><td class="num">3,378</td><td class="num">229</td><td class="num">—</td></tr>
+        <tr><td>Welcome Shilpa (28 comments)</td><td>Jun 1</td><td class="num">3,154</td><td class="num">313</td><td class="num">—</td></tr>
+        <tr><td>Shoptalk customer dinner recap</td><td>Apr 1</td><td class="num">3,120</td><td class="num">738</td><td class="num">—</td></tr>
+        <tr><td>AEO / PDP article post</td><td>—</td><td class="num">845</td><td class="num">—</td><td class="num">45.1%</td></tr>
+      </table>
+    </div>
+    <div>
+      <div class="card">
+        <h3>Quarter comparisons · JFM vs AMJ 2026</h3>
+        <div id="tblQuarters"></div>
+      </div>
+      <div class="card">
+        <h3>Exec profiles · H1 2026</h3>
+        <div class="chartbox"><canvas id="chExec"></canvas></div>
+        <div class="note">Karthik's NRF 2026 post led all exec content (152 interactions). Sada's Retail Data Lakes post drove the most clicks (44).</div>
+      </div>
+    </div>
+  </div>
+  <div class="card"><div class="note"><strong>Source</strong> · <a href="https://docs.google.com/spreadsheets/d/1jKuZRrEu9gRth_0izmlXrmp5CMi_yuORCE3KNLzybdM/edit" target="_blank">Social media tracker</a>. Monthly sums cross-checked against the sheet's own totals.</div></div>
+</section>
+
+<!-- EMAIL MARKETING -->
+<section class="panel" id="emailmkt">
+  <div class="card">
+    <h3 class="bar"><span id="asofEmail">Source: HubSpot · snapshot Oct 5, 2026</span><button class="refresh" id="btnEmail">↻ Refresh from HubSpot</button></h3>
+    <div class="msg" id="msgEmail">Refresh re-pulls the segment engagement rollup and the top engaged contacts.</div>
+  </div>
+  <div class="grid kpis" id="kpiEmail"></div>
+  <div class="card">
+    <h3>Engagement by segment · HubSpot Email Marketing Category</h3>
+    <div id="tblSeg"></div>
+    <div class="note">Lifetime marketing-email counters per contact (total opens/clicks, not unique per campaign). Open Rate = opens / delivered; CTOR = clicks / opens.</div>
+  </div>
+  <div class="card">
+    <h3 class="bar"><span>Most engaged</span><select id="emCat"></select></h3>
+    <div class="grid two">
+      <div><h4>Contacts · by opens</h4><div id="emContacts"></div></div>
+      <div><h4>Companies · by total opens</h4><div id="emCompanies"></div></div>
+    </div>
+    <div class="note">Top openers in HubSpot, internal @dataweave addresses excluded. Companies aggregate those contacts. The category filter applies to both views.</div>
+  </div>
+  <div class="grid two">
+    <div class="card">
+      <h3>Recent campaigns · last 12 months</h3>
+      <table>
+        <tr><th>Campaign</th><th class="num">Delivered</th><th class="num">Open %</th><th class="num">CTOR %</th></tr>
+        <tr><td>Messy Data</td><td class="num">3,259</td><td class="num">13.7</td><td class="num">6.3</td></tr>
+        <tr><td>Retail Media Metrics</td><td class="num">1,595</td><td class="num">13.4</td><td class="num">0.9</td></tr>
+        <tr><td>Marketing Mix Model</td><td class="num">1,641</td><td class="num">11.5</td><td class="num">0.0</td></tr>
+        <tr><td>Q2 Newsletter</td><td class="num">179</td><td class="num">10.1</td><td class="num">0.0</td></tr>
+        <tr><td>Blog Newsletter</td><td class="num">3,100</td><td class="num">7.4</td><td class="num">0.9</td></tr>
+        <tr><td>AI-Driven Data Quality</td><td class="num">26,980</td><td class="num">7.2</td><td class="num">3.1</td></tr>
+        <tr><td>Q3 Newsletter</td><td class="num">209</td><td class="num">6.7</td><td class="num">0.0</td></tr>
+        <tr><td>Q1 Newsletter</td><td class="num">102</td><td class="num">5.9</td><td class="num">0.0</td></tr>
+        <tr><td>Data Collection API</td><td class="num">18,102</td><td class="num">5.4</td><td class="num">5.6</td></tr>
+        <tr><td>Q4 Newsletter</td><td class="num">252</td><td class="num">4.4</td><td class="num">9.1</td></tr>
+        <tr><td>User-Led Match Management</td><td class="num">7,038</td><td class="num">3.0</td><td class="num">4.7</td></tr>
+      </table>
+      <div class="note">Source: AMJ 2026 review deck (unique opens/clicks). Campaign-level stats aren't queryable live; ask me in chat to refresh this table.</div>
+    </div>
+    <div class="card">
+      <h3>ABM campaign wave · Apr–Jun 2026</h3>
+      <div id="tblAbm"></div>
+      <div class="note">Source: email raw-data sheet. Six of twelve sends recorded zero clicks.</div>
+    </div>
+  </div>
+  <div class="card">
+    <h3>What stands out</h3>
+    <ul class="signals">
+      <li><span class="tag pill g">Positive</span><span>Warm segments earn their keep: QLs open at 9.6% and MGLs at 8.2% lifetime; the targeted ABM sends confirm it (ROW MQL/MGL 19.9%, NA Cold 14.8%).</span></li>
+      <li><span class="tag pill g">Positive</span><span>Enterprise names engage repeatedly: Target, Mars and Winmark contacts sit at 27–29 lifetime opens each.</span></li>
+      <li><span class="tag pill r">Gap</span><span>The two bulk "Top AE Accounts" ABM sends opened at 1.8% and 1.6%; ABM/RFP is the weakest category at 3.6% lifetime.</span></li>
+      <li><span class="tag pill r">Gap</span><span>Clicks are the bottleneck: 6 of 12 ABM sends recorded zero clicks; lifetime CTOR is ~3.5%.</span></li>
+      <li><span class="tag pill r">Gap</span><span>Cold Contacts absorb roughly half of all delivered volume at 6.0% opens.</span></li>
+    </ul>
+  </div>
+</section>
+
+<!-- SIGNATURE -->
+<section class="panel" id="email">
+  <div class="card">
+    <h3 class="bar"><span>Source: Aug 16 marketing review deck (AMJ banner stats unchanged) · no live connector</span><span class="src">Ask me in chat to refresh when a new deck or export lands</span></h3>
+  </div>
+  <div class="grid two">
+    <div class="card">
+      <h3>Signature marketing · AMJ 2026</h3>
+      <div class="grid kpis" style="margin-bottom:10px;">
+        <div class="kpi"><div class="label">Banners live</div><div class="val">17</div></div>
+        <div class="kpi"><div class="label">Clicks</div><div class="val">468</div></div>
+        <div class="kpi"><div class="label">Companies</div><div class="val">124</div></div>
+        <div class="kpi"><div class="label">Contacts</div><div class="val">205</div></div>
+      </div>
+      <table>
+        <tr><th>Top banner</th><th class="num">Clicks</th><th class="num">Unique</th><th class="num">Companies</th></tr>
+        <tr><td>Assortment Planning</td><td class="num">117</td><td class="num">66</td><td class="num">51</td></tr>
+        <tr><td>Blog: Content Optimization</td><td class="num">110</td><td class="num">49</td><td class="num">41</td></tr>
+        <tr><td>Blog: AI Powered Data</td><td class="num">72</td><td class="num">45</td><td class="num">35</td></tr>
+        <tr><td>Blog on Normalization</td><td class="num">68</td><td class="num">41</td><td class="num">36</td></tr>
+        <tr><td>AI Commerce and Messy Data</td><td class="num">36</td><td class="num">25</td><td class="num">19</td></tr>
+        <tr><td>Data Collection API use case</td><td class="num">36</td><td class="num">25</td><td class="num">22</td></tr>
+      </table>
+    </div>
+    <div>
+      <div class="card">
+        <h3>Top engaged companies</h3>
+        <table>
+          <tr><th>Company</th><th>Segment</th><th class="num">Contacts</th><th class="num">Clicks</th></tr>
+          <tr><td>kwiktrip.com</td><td>Convenience</td><td class="num">6</td><td class="num">38</td></tr>
+          <tr><td>bjs.com</td><td>Warehouse club</td><td class="num">10</td><td class="num">36</td></tr>
+          <tr><td>gmail.com</td><td>Unclassified</td><td class="num">5</td><td class="num">18</td></tr>
+          <tr><td>rona.ca</td><td>Home improvement</td><td class="num">5</td><td class="num">16</td></tr>
+          <tr><td>target.com</td><td>Mass</td><td class="num">7</td><td class="num">10</td></tr>
+          <tr><td>skylineproducts.com</td><td>Technology</td><td class="num">4</td><td class="num">10</td></tr>
+        </table>
+      </div>
+      <div class="card">
+        <h3>Upcoming email campaigns</h3>
+        <table>
+          <tr><th>Industry</th><th>Persona</th><th>Content</th></tr>
+          <tr><td>Retail</td><td>Pricing / Execs</td><td>Pricing Intelligence in the Age of AI-Driven Commerce</td></tr>
+          <tr><td>Retail</td><td>Assortment</td><td>Strategic Competitive Insights for Assortment</td></tr>
+          <tr><td>Retail</td><td>Content · Data/AI</td><td>AI Shopping Can't Scale · Retail Data Lakes</td></tr>
+          <tr><td>Brand</td><td>E-commerce · RGM</td><td>The Retrieval Economy · Localized Pricing</td></tr>
+          <tr><td>Brand</td><td>Marketing · Execs</td><td>Digital Shelf Analytics Guide · US Dairy Case Study</td></tr>
+        </table>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- WEBSITE -->
+<section class="panel" id="website">
+  <div class="card">
+    <h3 class="bar"><span>Source: SEMrush + GA4 via Aug 16 review deck · no live connector</span><span class="src">Ask me in chat to refresh when new exports land</span></h3>
+  </div>
+  <div class="grid two">
+    <div class="card">
+      <h3>Site health vs targets (SEMrush · Apr 1 – Jun 30)</h3>
+      <div class="progress-wrap">
+        <div class="lblrow"><span>AI Search Health</span><span><strong>77%</strong> / target 80%</span></div>
+        <div class="progress"><div class="fill" style="width:77%;background:var(--teal)"></div><div class="target" style="left:80%"></div></div>
+      </div>
+      <div class="progress-wrap">
+        <div class="lblrow"><span>Traditional Site Health</span><span><strong>85%</strong> / target 92%</span></div>
+        <div class="progress"><div class="fill" style="width:85%;background:var(--blue)"></div><div class="target" style="left:92%"></div></div>
+      </div>
+      <div class="note">Top-10% sites score 92%. The AI Assistant traffic channel was introduced mid-May.</div>
+    </div>
+    <div class="card">
+      <h3>SEO / AEO technical work completed</h3>
+      <ul class="clean">
+        <li>Robots.txt enabled for key product pages across all regions</li>
+        <li>JSON schema (foundational attributes) added to site</li>
+        <li>Breadcrumbs enabled via sitemap page-level updates</li>
+        <li>26 blog/news images and 1,445 hidden icons fixed for missing alt attributes</li>
+        <li>Llms.txt added to website</li>
+      </ul>
+    </div>
+  </div>
+  <div class="card">
+    <h3>AEO visibility pipeline</h3>
+    <ul class="clean">
+      <li>DataWeave vs competitors pages in progress for AI search visibility</li>
+      <li>Listicles: "Top PI providers" and equivalents for other products</li>
+      <li>Internal AEO tracking tool being built with a wider prompt range</li>
+    </ul>
+  </div>
+</section>
+
+<!-- PMM -->
+<section class="panel" id="pmm">
+  <div class="card">
+    <h3 class="bar"><span>Source: Aug 16 review deck + Fathom meetings · updated Aug 16, 2026</span><span class="src">Team tab has the live per-person view with its own refresh</span></h3>
+  </div>
+  <div class="card">
+    <h3>Website messaging update</h3>
+    <table>
+      <tr><th>Phase</th><th>Scope</th><th>Window</th><th>Status</th></tr>
+      <tr><td>Research</td><td>Competitive research, nav revamp ideas, messaging philosophy</td><td>Jul 15–23</td><td><span class="pill g">Done</span></td></tr>
+      <tr><td>Stakeholder alignment</td><td>Review with Karthik, Sanket, Krish: AI-first narrative, nav, homepage</td><td>Aug 10 (being scheduled)</td><td><span class="pill b">In progress</span></td></tr>
+      <tr><td>First drafts</td><td>Homepage and main product page drafts</td><td>Aug–Sep</td><td><span class="pill a">Upcoming</span></td></tr>
+    </table>
+    <div class="note">Framing agreed Aug 4: position the revamp as reflecting product evolution and market shifts, not a reaction to competitors.</div>
+  </div>
+  <div class="grid two">
+    <div class="card">
+      <h3>GTM &amp; sales enablement</h3>
+      <table>
+        <tr><th>Workstream</th><th>Activity</th><th>Status</th></tr>
+        <tr><td>Collateral wiki</td><td>Restructure by Product / Industry / Vertical; full logo audit (Upasana); repo cleanup due Aug 7</td><td><span class="pill b">In flight</span></td></tr>
+        <tr><td>Propulse (DSIM)</td><td>Decks revised per Karthik: 10–12 slides, outcome-led; rename to "Propulse (Digital Shelf Impact Modeling)"</td><td><span class="pill b">In flight</span></td></tr>
+        <tr><td>CRC 2-pager</td><td>Neutral leave-behind covering DSA + AI Search + Propulse, for CRC Summit Aug 12–13</td><td><span class="pill a">In revision</span></td></tr>
+        <tr><td>PI pitch deck</td><td>Interim deck adapted from corporate deck; List Price Analytics sunset</td><td><span class="pill b">In flight</span></td></tr>
+        <tr><td>Outreach automation</td><td>Persona-to-sequence mapping fix owed by you; Priyank starting general-purpose sequence</td><td><span class="pill a">Blocked on you</span></td></tr>
+      </table>
+    </div>
+    <div class="card">
+      <h3>Customer advocacy pipeline</h3>
+      <table>
+        <tr><th>Customer</th><th>Asset</th><th>Status</th></tr>
+        <tr><td>QVC</td><td>G2 review</td><td><span class="pill g">Submitted Jul 24 · reward processing</span></td></tr>
+        <tr><td>1MG / Croma / Kellanova</td><td>G2 reviews (4)</td><td><span class="pill g">Submitted</span></td></tr>
+        <tr><td>Simple Tire</td><td>Branded case study</td><td><span class="pill b">Interview Aug 13 (James Saldaña)</span></td></tr>
+        <tr><td>Bush Brother's</td><td>Branded case study</td><td><span class="pill b">Strong analysis results, in motion</span></td></tr>
+        <tr><td>Lactalis US</td><td>Branded case study</td><td><span class="pill b">New opportunity (Aug 4)</span></td></tr>
+        <tr><td>Zappos</td><td>G2 review</td><td><span class="pill a">Brian following up</span></td></tr>
+        <tr><td>Hayward / Fairway / Michelin / Signet</td><td>Advocacy outreach</td><td><span class="pill a">Dan/Ishwarya emailing</span></td></tr>
+      </table>
+      <div class="note">New this cycle: 3-tier logo-use policy (Permitted / Pitch decks only / No use) tracked in Prism; warm-intro program folding into the bi-weekly advocacy call with Priyank driving the OKR.</div>
+    </div>
+  </div>
+</section>
+
+<!-- TEAM -->
+<section class="panel" id="team">
+  <div class="card">
+    <h3 class="bar"><span id="asofTeam">OKR structure from the Q2 sheet (Q3 reset underway) · statuses grouped by initiative · Fathom + Slack + Gmail + HubSpot · window Sep 28 – Oct 5, 2026</span><button class="refresh" id="btnTeam">↻ Refresh from Gmail + Slack + Fathom</button></h3>
+    <div class="msg" id="msgTeam">Refresh re-reads the last 3 weeks of meeting recordings, internal email and Slack, then rebuilds the per-person view. Takes ~30–60 seconds. Note: recent Slack activity is dominated by system alert channels; bot channels are excluded.</div>
+  </div>
+  <div id="teamBody"></div>
+  <div class="card">
+    <h3>Needs your attention</h3>
+    <div id="teamAttn"></div>
+  </div>
+</section>
+
+
+
+<p class="footer-note">Each section carries its own source and snapshot date. Refresh buttons pull fresh data for that section only; if a refresh fails, the snapshot stays intact.</p>
+</div>
+
+<script>
+(function () {
+  'use strict';
+  var $ = function (id) { return document.getElementById(id); };
+  var esc = function (s) { return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;'); };
+  var fmtM = function (v) { return v >= 1e6 ? '$' + (v / 1e6).toFixed(2) + 'M' : v >= 1e3 ? '$' + Math.round(v / 1e3) + 'K' : '$' + Math.round(v); };
+  var MO = ['', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  var mLbl = function (m) { return MO[parseInt(m.slice(5, 7), 10)] + ' ' + m.slice(2, 4); };
+  var pct = function (a, b) { return b ? Math.round(a / b * 100) + '%' : '—'; };
+
+  /* ================= tool ids ================= */
+  var T_HS = 'mcp__42959cef-c6f1-44fa-a17e-a10113856ddf__query_crm_data';
+  var T_HS_SEARCH = 'mcp__42959cef-c6f1-44fa-a17e-a10113856ddf__search_crm_objects';
+  var T_DRIVE = 'mcp__7e0c7b04-6e7f-421f-8159-263b6f68ace6__read_file_content';
+  var T_FATHOM = 'mcp__3cdb7f2b-5693-467a-8864-27c7e6e61871__list_meetings';
+  var T_GMAIL = 'mcp__ad907bf9-7ff1-471d-8113-47855b6ba605__search_threads';
+  var T_SLACK = 'mcp__c02f3603-f5f6-4d11-b9a9-0bf86a4ec1f7__slack_search_public_and_private';
+  var SHEET_CONTENT = '1sHKm2eaQfsVITlooPhjLXHngoSpyqoLTNY6ZmN5tUYU';
+  var SHEET_SOCIAL = '1jKuZRrEu9gRth_0izmlXrmp5CMi_yuORCE3KNLzybdM';
+  var LEAD_WHERE = "l1_qualification_level IS NOT NULL AND meeting_completed_date BETWEEN '2026-03-31' AND '2027-03-31'"; /* lower bound widened: HubSpot's engine drops records dated exactly Apr 1 00:00 UTC from a '2026-04-01' bound; client-side filter below re-applies the true Apr 1 cutoff */
+  var DEAL_WHERE = "createdate BETWEEN '2026-04-01' AND '2027-03-31' AND dealtype IN ('One Time', 'Recurring', 'Recurring DaaS') AND contract_type = 'New Business'";
+  var OWNER = { '38231952': 'Dan Eriksen', '63608419': 'Joe Bunner', '36301982': 'Prashant Dixit', '215183276': 'Priyank Chaturvedi', '74880626': 'Brian Linger', '76275499': 'Dan Eriksen', '93010352': 'Joe Bunner', '96274724': 'Dan Eriksen' };
+  var STAGE = { appointmentscheduled: 'Qualified', qualifiedtobuy: 'Solutioned', presentationscheduled: 'Proof Completed', decisionmakerboughtin: 'Commercials Done', contractsent: 'Agreement Signed', closedwon: 'Closed won', '865457': 'Active Partner Engagement' };
+  var STAGE_ORDER = ['Qualified', 'Solutioned', 'Proof Completed', 'Commercials Done', 'Agreement Signed', 'Active Partner Engagement', 'Closed won'];
+  var ENG_ORDER = ['Open', 'Deferred', 'Won', 'Churned', 'Closed - Abandoned', 'Closed - Lost to Competitor'];
+  var clean = function (v) {
+    if (v == null || v === '' || v === 'Unassigned') return 'Unassigned';
+    if (OWNER[v]) return OWNER[v];
+    var s = String(v).replace(/\s*\((Core|Non-Core) Lead\)\s*$/i, '').replace(/\s*\((865457|appointmentscheduled|qualifiedtobuy|presentationscheduled|decisionmakerboughtin|contractsent|closedwon)\)\s*$/i, '');
+    if (s.toLowerCase() === 'us') return 'US';
+    if (s.toLowerCase() === 'row') return 'ROW';
+    return s;
+  };
+  var num = function (v) { var n = parseFloat(String(v == null ? '' : v).replace(/,/g, '')); return isNaN(n) ? null : n; };
+  var isUn = function (v) { return v === 'Unassigned' || v === '' || v == null; };
+
+  /* ================= STATE: verified snapshots ================= */
+  var S = {
+    asOfLeads: "Oct 5, 2026",
+    months: ["2026-04-01", "2026-05-01", "2026-06-01", "2026-07-01", "2026-08-01", "2026-09-01", "2026-10-01"],
+    leads: {"us": [17, 10, 16, 18, 9, 13, 4], "row": [8, 5, 4, 9, 5, 4, 2], "conv": [16, 10, 9, 11, 7, 4, 1]},
+    pipe: {"amt": [1546513.635558, 1317000, 402700, 900160, 816770, 400200, 100000], "n": [14, 8, 11, 10, 12, 7, 1]},
+    leadCuts: [["Region (Cumulated)", [["US", [17, 10, 16, 18, 9, 13, 4], 40], ["ROW", [8, 5, 4, 9, 5, 4, 2], 18]]], ["Core vs Non-core", [["Non-core Lead", [20, 9, 14, 16, 9, 11, 3], 34], ["Core Lead", [5, 6, 6, 11, 5, 6, 3], 24]]], ["Channel", [["Website", [8, 5, 11, 20, 11, 10, 5], 32], ["Partner Referral", [8, 5, 3, 5, 0, 2, 0], 12], ["Events", [5, 2, 3, 0, 0, 2, 0], 5], ["Referral", [3, 1, 1, 0, 1, 1, 0], 5], ["Sales Outreach", [1, 0, 1, 0, 0, 2, 0], 1], ["Email Campaigns", [0, 0, 1, 2, 1, 0, 0], 1], ["Hosted Events", [0, 2, 0, 0, 0, 0, 0], 1], ["Other", [0, 0, 0, 0, 1, 0, 0], 1]]], ["Lead AE", [["Dan Eriksen", [12, 10, 11, 8, 5, 8, 1], 25], ["Joe Bunner", [5, 1, 3, 10, 4, 5, 2], 15], ["Prashant Dixit", [4, 3, 1, 3, 5, 1, 2], 10], ["Priyank Chaturvedi", [4, 1, 5, 6, 0, 3, 0], 7]]]],
+    leadCountry: [["United States", 77, 33], ["India", 10, 5], ["Germany", 7, 3], ["Canada", 6, 6], ["United Kingdom", 4, 2], ["France", 3, 1], ["United Arab Emirates", 2, 2], ["Brazil", 2, 0], ["Poland", 2, 0], ["Switzerland", 1, 1], ["Sweden", 1, 1], ["Mexico", 1, 1], ["Denmark", 1, 1], ["Saudi Arabia", 1, 1], ["Argentina", 1, 0], ["Italy", 1, 1], ["Indonesia", 1, 0], ["Japan", 1, 0], ["Malaysia", 1, 0], ["Singapore", 1, 0]],
+    dealPivots: [["Region (Cumulated)", [["ROW", [822813.6355580001, 1123000, 0, 345000, 516770, 60000, 0]], ["US", [723700, 194000, 402700, 555160, 300000, 340200, 100000]]]], ["Core vs Non-core", [["Core Lead", [950873.6355580001, 903000, 92500, 686560, 446770, 175000, 100000]], ["Non-core Lead", [595640, 414000, 310200, 213600, 370000, 225200, 0]]]]],
+    dealTotals: [["Engagement Status", [["Open", 36, 2877003.635558], ["Deferred", 12, 1072000], ["Won", 3, 245140], ["Closed - Abandoned", 6, 291600], ["Closed - Lost to Competitor", 6, 997600]]], ["Open deals by stage", [["Qualified", 23, 1879403.635558], ["Solutioned", 9, 888600], ["Proof Completed", 1, 56000], ["Active Partner Engagement", 3, 53000]]], ["Channel (via associated contact)", [["Website", 35, 3709403.635558], ["Partner Referral", 13, 587800], ["Referral", 5, 378700], ["Hosted Events", 1, 360000], ["Events", 6, 246500], ["Sales Outreach", 1, 140940], ["Other", 1, 60000], ["Email Campaigns", 1, 0]]], ["Deal Owner (AE)", [["Dan Eriksen", 25, 2007500], ["Joe Bunner", 17, 1408560], ["Prashant Dixit", 11, 1077583.635558], ["Priyank Chaturvedi", 9, 840000], ["Brian Linger", 1, 149700]]], ["Country", [["United States", 37, 2368200], ["Netherlands", 1, 798000], ["India", 4, 741000], ["United Kingdom", 5, 367643.635558], ["Canada", 4, 247560], ["Germany", 2, 245000], ["United Arab Emirates", 2, 200940], ["Denmark", 2, 150000], ["Italy", 1, 100000], ["Sweden", 2, 97000], ["France", 1, 80000], ["Saudi Arabia", 1, 48000], ["Egypt", 1, 40000]]]],
+    dealRows: [{"m": "2026-08-01", "amt": 55000, "region": "US", "coreC": "Core Lead", "coreD": "Core Lead", "country": "United States", "owner": "38231952", "eng": "Open", "stage": "Qualified (appointmentscheduled)", "channel": "Website", "core": "Core Lead"}, {"m": "2026-05-01", "amt": 113000, "region": "US", "coreC": "Non-core Lead", "coreD": "Non-core Lead", "country": "United States", "owner": "38231952", "eng": "Open", "stage": "Qualified (appointmentscheduled)", "channel": "Website", "core": "Non-core Lead"}, {"m": "2026-09-01", "amt": 53000, "region": "US", "coreC": "Non-core Lead", "coreD": "Non-core Lead", "country": "United States", "owner": "63608419", "eng": "Open", "stage": "Active Partner Engagement (865457)", "channel": "Website", "core": "Non-core Lead"}, {"m": "2026-08-01", "amt": 250000, "region": "ROW", "coreC": "Non-core Lead", "coreD": "Non-core Lead", "country": "India", "owner": "215183276", "eng": "Open", "stage": "Qualified (appointmentscheduled)", "channel": "Website", "core": "Non-core Lead"}, {"m": "2026-08-01", "amt": 0, "region": "ROW", "coreC": "Non-core Lead", "coreD": "Non-core Lead", "country": "Denmark", "owner": "215183276", "eng": "Open", "stage": "Active Partner Engagement (865457)", "channel": "Email Campaigns", "core": "Non-core Lead"}, {"m": "2026-08-01", "amt": 25000, "region": "US", "coreC": "Core Lead", "coreD": "Core Lead", "country": "United States", "owner": "38231952", "eng": "Deferred", "stage": "Qualified (appointmentscheduled)", "channel": "Events", "core": "Core Lead"}, {"m": "2026-06-01", "amt": 37500, "region": "US", "coreC": "Core Lead", "coreD": "Core Lead", "country": "United States", "owner": "38231952", "eng": "Open", "stage": "Qualified (appointmentscheduled)", "channel": "Events", "core": "Core Lead"}, {"m": "2026-04-01", "amt": 100000, "region": "US", "coreC": "Core Lead", "coreD": "Core Lead", "country": "United States", "owner": "63608419", "eng": "Deferred", "stage": "Qualified (appointmentscheduled)", "channel": "Events", "core": "Core Lead"}, {"m": "2026-07-01", "amt": 0, "region": "US", "coreC": "Non-core Lead", "coreD": "Non-core Lead", "country": "United States", "owner": "38231952", "eng": "Open", "stage": "Active Partner Engagement (865457)", "channel": "Events", "core": "Non-core Lead"}, {"m": "2026-08-01", "amt": 40000, "region": "US", "coreC": "Non-core Lead", "coreD": "Non-core Lead", "country": "United States", "owner": "38231952", "eng": "Open", "stage": "Solutioned (qualifiedtobuy)", "channel": "Events", "core": "Non-core Lead"}, {"m": "2026-04-01", "amt": 44000, "region": "US", "coreC": "Non-core Lead", "coreD": "Non-core Lead", "country": "United States", "owner": "63608419", "eng": "Deferred", "stage": "Solutioned (qualifiedtobuy)", "channel": "Events", "core": "Non-core Lead"}, {"m": "2026-04-01", "amt": 360000, "region": "ROW", "coreC": "Core Lead", "coreD": null, "country": "India", "owner": "36301982", "eng": "Deferred", "stage": "Proof Completed (presentationscheduled)", "channel": "Hosted Events", "core": "Core Lead"}, {"m": "2026-09-01", "amt": 60000, "region": "ROW", "coreC": "Non-core Lead", "coreD": "Non-core Lead", "country": "United Arab Emirates", "owner": "36301982", "eng": "Open", "stage": "Qualified (appointmentscheduled)", "channel": "Other", "core": "Non-core Lead"}, {"m": "2026-08-01", "amt": 36000, "region": "US", "coreC": "Core Lead", "coreD": "Core Lead", "country": "Canada", "owner": "38231952", "eng": "Closed - Lost to Competitor", "stage": "Qualified (appointmentscheduled)", "channel": "Partner Referral", "core": "Core Lead"}, {"m": "2026-07-01", "amt": 300000, "region": "US", "coreC": "Core Lead", "coreD": null, "country": "United States", "owner": "38231952", "eng": "Open", "stage": "Solutioned (qualifiedtobuy)", "channel": "Partner Referral", "core": "Core Lead"}, {"m": "2026-06-01", "amt": 6000, "region": "US", "coreC": "Non-core Lead", "coreD": "Non-core Lead", "country": "United States", "owner": "38231952", "eng": "Won", "stage": "Closed won (closedwon)", "channel": "Partner Referral", "core": "Non-core Lead"}, {"m": "2026-06-01", "amt": 6000, "region": "US", "coreC": "Non-core Lead", "coreD": "Non-core Lead", "country": "United States", "owner": "38231952", "eng": "Closed - Abandoned", "stage": "Qualified (appointmentscheduled)", "channel": "Partner Referral", "core": "Non-core Lead"}, {"m": "2026-07-01", "amt": 6000, "region": "US", "coreC": "Non-core Lead", "coreD": "Non-core Lead", "country": "United States", "owner": "38231952", "eng": "Closed - Lost to Competitor", "stage": "Solutioned (qualifiedtobuy)", "channel": "Partner Referral", "core": "Non-core Lead"}, {"m": "2026-09-01", "amt": 7200, "region": "US", "coreC": "Non-core Lead", "coreD": "Non-core Lead", "country": "United States", "owner": "38231952", "eng": "Closed - Abandoned", "stage": "Solutioned (qualifiedtobuy)", "channel": "Partner Referral", "core": "Non-core Lead"}, {"m": "2026-06-01", "amt": 8400, "region": "US", "coreC": "Non-core Lead", "coreD": "Non-core Lead", "country": "United States", "owner": "38231952", "eng": "Closed - Abandoned", "stage": "Solutioned (qualifiedtobuy)", "channel": "Partner Referral", "core": "Non-core Lead"}, {"m": "2026-06-01", "amt": 12600, "region": "US", "coreC": "Non-core Lead", "coreD": null, "country": "United States", "owner": "38231952", "eng": "Closed - Lost to Competitor", "stage": "Qualified (appointmentscheduled)", "channel": "Partner Referral", "core": "Non-core Lead"}, {"m": "2026-07-01", "amt": 12600, "region": "US", "coreC": "Non-core Lead", "coreD": "Non-core Lead", "country": "United States", "owner": "38231952", "eng": "Open", "stage": "Solutioned (qualifiedtobuy)", "channel": "Partner Referral", "core": "Non-core Lead"}, {"m": "2026-06-01", "amt": 42000, "region": "US", "coreC": "Non-core Lead", "coreD": "Non-core Lead", "country": "United States", "owner": "38231952", "eng": "Open", "stage": "Qualified (appointmentscheduled)", "channel": "Partner Referral", "core": "Non-core Lead"}, {"m": "2026-06-01", "amt": 45000, "region": "US", "coreC": "Non-core Lead", "coreD": "Non-core Lead", "country": "United States", "owner": "215183276", "eng": "Open", "stage": "Qualified (appointmentscheduled)", "channel": "Partner Referral", "core": "Non-core Lead"}, {"m": "2026-04-01", "amt": 50000, "region": "US", "coreC": "Non-core Lead", "coreD": "Non-core Lead", "country": "United States", "owner": "38231952", "eng": "Closed - Lost to Competitor", "stage": "Qualified (appointmentscheduled)", "channel": "Partner Referral", "core": "Non-core Lead"}, {"m": "2026-05-01", "amt": 56000, "region": "US", "coreC": "Non-core Lead", "coreD": null, "country": "United States", "owner": "38231952", "eng": "Open", "stage": "Proof Completed (presentationscheduled)", "channel": "Partner Referral", "core": "Non-core Lead"}, {"m": "2026-08-01", "amt": 50000, "region": "US", "coreC": "Core Lead", "coreD": "Core Lead", "country": "United States", "owner": "38231952", "eng": "Open", "stage": "Qualified (appointmentscheduled)", "channel": "Referral", "core": "Core Lead"}, {"m": "2026-05-01", "amt": 80000, "region": "ROW", "coreC": "Core Lead", "coreD": "Core Lead", "country": "India", "owner": "36301982", "eng": "Closed - Abandoned", "stage": "Qualified (appointmentscheduled)", "channel": "Referral", "core": "Core Lead"}, {"m": "2026-05-01", "amt": 48000, "region": "ROW", "coreC": "Non-core Lead", "coreD": "Non-core Lead", "country": "Saudi Arabia", "owner": "36301982", "eng": "Open", "stage": "Solutioned (qualifiedtobuy)", "channel": "Referral", "core": "Non-core Lead"}, {"m": "2026-04-01", "amt": 51000, "region": "ROW", "coreC": "Non-core Lead", "coreD": "Non-core Lead", "country": "India", "owner": "36301982", "eng": "Deferred", "stage": "Solutioned (qualifiedtobuy)", "channel": "Referral", "core": "Non-core Lead"}, {"m": "2026-04-01", "amt": 149700, "region": "US", "coreC": "Non-core Lead", "coreD": "Non-core Lead", "country": "United States", "owner": "74880626", "eng": "Open", "stage": "Qualified (appointmentscheduled)", "channel": "Referral", "core": "Non-core Lead"}, {"m": "2026-04-01", "amt": 140940, "region": "ROW", "coreC": "Non-core Lead", "coreD": "Non-core Lead", "country": "United Arab Emirates", "owner": "36301982", "eng": "Won", "stage": "Closed won (closedwon)", "channel": "Sales Outreach", "core": "Non-core Lead"}, {"m": "2026-05-01", "amt": 25000, "region": "US", "coreC": "Core Lead", "coreD": null, "country": "Canada", "owner": "38231952", "eng": "Deferred", "stage": "Qualified (appointmentscheduled)", "channel": "Website", "core": "Core Lead"}, {"m": "2026-04-01", "amt": 43854.585558, "region": "ROW", "coreC": "Core Lead", "coreD": "Core Lead", "country": "United Kingdom", "owner": "36301982", "eng": "Open", "stage": "Qualified (appointmentscheduled)", "channel": "Website", "core": "Core Lead"}, {"m": "2026-08-01", "amt": 44000, "region": "US", "coreC": "Core Lead", "coreD": "Core Lead", "country": "United States", "owner": "63608419", "eng": "Open", "stage": "Qualified (appointmentscheduled)", "channel": "Website", "core": "Core Lead"}, {"m": "2026-07-01", "amt": 50000, "region": "US", "coreC": "Core Lead", "coreD": "Core Lead", "country": "United States", "owner": "63608419", "eng": "Deferred", "stage": "Solutioned (qualifiedtobuy)", "channel": "Website", "core": "Core Lead"}, {"m": "2026-08-01", "amt": 50000, "region": "US", "coreC": "Core Lead", "coreD": "Core Lead", "country": "United States", "owner": "63608419", "eng": "Open", "stage": "Qualified (appointmentscheduled)", "channel": "Website", "core": "Core Lead"}, {"m": "2026-06-01", "amt": 55000, "region": "US", "coreC": "Core Lead", "coreD": "Core Lead", "country": "United States", "owner": "63608419", "eng": "Open", "stage": "Solutioned (qualifiedtobuy)", "channel": "Website", "core": "Core Lead"}, {"m": "2026-07-01", "amt": 56560, "region": "US", "coreC": "Core Lead", "coreD": "Core Lead", "country": "Canada", "owner": "63608419", "eng": "Open", "stage": "Qualified (appointmentscheduled)", "channel": "Website", "core": "Core Lead"}, {"m": "2026-04-01", "amt": 67019.05, "region": "ROW", "coreC": "Core Lead", "coreD": "Core Lead", "country": "United Kingdom", "owner": "36301982", "eng": "Open", "stage": "Qualified (appointmentscheduled)", "channel": "Website", "core": "Core Lead"}, {"m": "2026-09-01", "amt": 75000, "region": "US", "coreC": "Core Lead", "coreD": "Core Lead", "country": "United States", "owner": "63608419", "eng": "Open", "stage": "Qualified (appointmentscheduled)", "channel": "Website", "core": "Core Lead"}, {"m": "2026-08-01", "amt": 85770, "region": "ROW", "coreC": "Core Lead", "coreD": "Core Lead", "country": "United Kingdom", "owner": "36301982", "eng": "Open", "stage": "Qualified (appointmentscheduled)", "channel": "Website", "core": "Core Lead"}, {"m": "2026-04-01", "amt": 100000, "region": "US", "coreC": "Core Lead", "coreD": "Core Lead", "country": "United States", "owner": "63608419", "eng": "Deferred", "stage": "Qualified (appointmentscheduled)", "channel": "Website", "core": "Core Lead"}, {"m": "2026-09-01", "amt": 100000, "region": "US", "coreC": "Core Lead", "coreD": "Core Lead", "country": "United States", "owner": "63608419", "eng": "Open", "stage": "Qualified (appointmentscheduled)", "channel": "Website", "core": "Core Lead"}, {"m": "2026-10-01", "amt": 100000, "region": "US", "coreC": "Core Lead", "coreD": "Core Lead", "country": "United States", "owner": "63608419", "eng": "Open", "stage": "Qualified (appointmentscheduled)", "channel": "Website", "core": "Core Lead"}, {"m": "2026-08-01", "amt": 101000, "region": "ROW", "coreC": "Core Lead", "coreD": "Core Lead", "country": "United Kingdom", "owner": "36301982", "eng": "Open", "stage": "Qualified (appointmentscheduled)", "channel": "Website", "core": "Core Lead"}, {"m": "2026-07-01", "amt": 130000, "region": "US", "coreC": "Core Lead", "coreD": "Core Lead", "country": "Canada", "owner": "63608419", "eng": "Open", "stage": "Qualified (appointmentscheduled)", "channel": "Website", "core": "Core Lead"}, {"m": "2026-07-01", "amt": 150000, "region": "ROW", "coreC": "Core Lead", "coreD": "Core Lead", "country": "Germany", "owner": "215183276", "eng": "Deferred", "stage": "Qualified (appointmentscheduled)", "channel": "Website", "core": "Core Lead"}, {"m": "2026-04-01", "amt": 280000, "region": "US", "coreC": "Core Lead", "coreD": "Core Lead", "country": "United States", "owner": "63608419", "eng": "Open", "stage": "Solutioned (qualifiedtobuy)", "channel": "Website", "core": "Core Lead"}, {"m": "2026-05-01", "amt": 798000, "region": "ROW", "coreC": "Core Lead", "coreD": "Core Lead", "country": "Netherlands", "owner": "38231952", "eng": "Closed - Lost to Competitor", "stage": "Qualified (appointmentscheduled)", "channel": "Website", "core": "Core Lead"}, {"m": "2026-09-01", "amt": 36000, "region": "US", "coreC": "Non-core Lead", "coreD": "Non-core Lead", "country": "United States", "owner": "38231952", "eng": "Open", "stage": "Solutioned (qualifiedtobuy)", "channel": "Website", "core": "Non-core Lead"}, {"m": "2026-06-01", "amt": 37000, "region": "US", "coreC": "Non-core Lead", "coreD": "Non-core Lead", "country": "United States", "owner": "38231952", "eng": "Open", "stage": "Solutioned (qualifiedtobuy)", "channel": "Website", "core": "Non-core Lead"}, {"m": "2026-04-01", "amt": 40000, "region": "ROW", "coreC": "Non-core Lead", "coreD": "Non-core Lead", "country": "Egypt", "owner": "36301982", "eng": "Closed - Abandoned", "stage": "Solutioned (qualifiedtobuy)", "channel": "Website", "core": "Non-core Lead"}, {"m": "2026-05-01", "amt": 47000, "region": "ROW", "coreC": "Non-core Lead", "coreD": "Non-core Lead", "country": "Sweden", "owner": "63608419", "eng": "Deferred", "stage": "Qualified (appointmentscheduled)", "channel": "Website", "core": "Non-core Lead"}, {"m": "2026-04-01", "amt": 50000, "region": "ROW", "coreC": "Non-core Lead", "coreD": "Non-core Lead", "country": "Sweden", "owner": "215183276", "eng": "Deferred", "stage": "Qualified (appointmentscheduled)", "channel": "Website", "core": "Non-core Lead"}, {"m": "2026-06-01", "amt": 55000, "region": "US", "coreC": "Non-core Lead", "coreD": "Non-core Lead", "country": "United States", "owner": "63608419", "eng": "Open", "stage": "Qualified (appointmentscheduled)", "channel": "Website", "core": "Non-core Lead"}, {"m": "2026-09-01", "amt": 69000, "region": "US", "coreC": "Non-core Lead", "coreD": "Non-core Lead", "country": "United States", "owner": "63608419", "eng": "Open", "stage": "Qualified (appointmentscheduled)", "channel": "Website", "core": "Non-core Lead"}, {"m": "2026-04-01", "amt": 70000, "region": "ROW", "coreC": "Non-core Lead", "coreD": "Non-core Lead", "country": "United Kingdom", "owner": "215183276", "eng": "Deferred", "stage": "Qualified (appointmentscheduled)", "channel": "Website", "core": "Non-core Lead"}, {"m": "2026-08-01", "amt": 80000, "region": "ROW", "coreC": "Non-core Lead", "coreD": "Non-core Lead", "country": "France", "owner": "215183276", "eng": "Open", "stage": "Solutioned (qualifiedtobuy)", "channel": "Website", "core": "Non-core Lead"}, {"m": "2026-07-01", "amt": 95000, "region": "ROW", "coreC": "Non-core Lead", "coreD": "Non-core Lead", "country": "Germany", "owner": "215183276", "eng": "Closed - Lost to Competitor", "stage": "Qualified (appointmentscheduled)", "channel": "Website", "core": "Non-core Lead"}, {"m": "2026-06-01", "amt": 98200, "region": "US", "coreC": "Non-core Lead", "coreD": "Non-core Lead", "country": "United States", "owner": "38231952", "eng": "Won", "stage": "Closed won (closedwon)", "channel": "Website", "core": "Non-core Lead"}, {"m": "2026-07-01", "amt": 100000, "region": "ROW", "coreC": "Non-core Lead", "coreD": "Non-core Lead", "country": "Italy", "owner": "215183276", "eng": "Open", "stage": "Qualified (appointmentscheduled)", "channel": "Website", "core": "Non-core Lead"}, {"m": "2026-05-01", "amt": 150000, "region": "ROW", "coreC": "Non-core Lead", "coreD": "Non-core Lead", "country": "Denmark", "owner": "38231952", "eng": "Closed - Abandoned", "stage": "Qualified (appointmentscheduled)", "channel": "Website", "core": "Non-core Lead"}],
+    funnel: [["Shoptalk Spring Event 2026", 62, 25, 8], ["Groceryshop Event 2026", 39, 24, 1], ["Digital Shelf Summit Event 2026", 26, 15, 2], ["GCC Roundtable June Event 2026", 24, 13, 0], ["RetailClub AI Festival Event 2026", 22, 12, 0], ["CRC eCommerce Summit Event 2026", 18, 3, 1], ["Groceryshop Dinner Event 2026", 15, 0, 0], ["Shoptalk Spring Dinner Event 2026", 11, 4, 2], ["NACS Show Event 2026", 3, 3, 0]],
+    evDeals: [["Target - SKU 360 - Main project", 360000, "Proof Completed", "Deferred", "Prashant Dixit", "108d ago", true, "59418536031"], ["Floor & Decor - PI", 100000, "Qualified", "Deferred", "Joe Bunner", "82d ago", true, "59680734486"], ["Maxwood Furniture - DSA", 44000, "Solutioned", "Deferred", "Joe Bunner", "132d ago", true, "59569787455"], ["Zespri - Pricing & Availability", 40000, "Solutioned", "Open", "Dan Eriksen", "11d ago", false, "63436641036"], ["Stanley Black & Decker - DSA", 37500, "Qualified", "Open", "Dan Eriksen", "5d ago", false, "61209549846"], ["HP - DSA (Pricing, Availability, SoS)", 25000, "Qualified", "Deferred", "Dan Eriksen", "5d ago", false, "64133404015"], ["Quicklizard - Active Partner Engagement", 0, "Active Partner Engagement", "Open", "Dan Eriksen", "none logged", true, "63083918472"]],
+    content: [
+      ['AI Shopping Can’t Scale Until Product Data Stops Being a Mess', 'Blog', 1414, 696, 13],
+      ['DataWeave Vs. Wiser', 'Web page', 964, 507, 27],
+      ['Real-Time Competitive Intelligence', 'Blog', 1167, 600, 7],
+      ['Rethinking Content Optimization', 'Whitepaper', 721, 356, 28],
+      ['The Retrieval Economy', 'Blog', 380, 164, 29],
+      ['Why Retail Data Lakes Need A Different Blueprint', 'Blog', 185, 82, 29],
+      ['Dairy Brand Used Search Intelligence', 'Case Study', 162, 43, 217],
+      ['Trust, Speed, and The AI-Ready Foundation', 'Blog', 145, 69, 23],
+      ['From Mess To Match', 'Blog', 150, 68, 49],
+      ['Fuel Retailer Drives Precision', 'Case Study', 87, 40, 42],
+      ['AI Search and the New Digital Shelf', 'Blog', 163, 78, 28],
+      ['Amazon Prime Day 2026', 'Blog', 104, 55, 49],
+      ['Pricing Intelligence in the Age of AI-Driven Commerce', 'Blog', 143, 71, 23]
+    ],
+    quarters: {
+      linkedin: [['Posts', 56, 29, 14], ['Impressions', 64890, 51758, 20453], ['Clicks', 7143, 4424, 890], ['Reactions', 1317, 956, 371], ['Comments', 27, 73, 5], ['New followers', 1911, 882, 2748]],
+      x: [['Posts', 53, 30, 10], ['Impressions', 1561, 622, 228], ['Link clicks', 79, 42, 5], ['Interactions', 10, 12, 2]]
+    },
+    segments: [["QLs", 199, 2789, 267, 14], ["MGLs", 1181, 15623, 1283, 96], ["AE Top Accounts", 7808, 79993, 5099, 153], ["Partners (Active)", 2200, 37288, 3858, 85], ["Customers", 259, 3934, 380, 19], ["Active POC", 338, 747, 48, 0], ["Cold Contacts", 9351, 129623, 7799, 287], ["Active Deals", 149, 1386, 79, 9], ["ABM/RFP (ABM Cold)", 490, 3349, 118, 6], ["Other Partners", 4, 76, 39, 2]],
+    emContacts: [["Lauren Friel", "Winmark United States", "Uncategorized", 36, 29, 0], ["Kelley Walczak", "Mars", "Cold Contacts", 38, 28, 1], ["Chris Compton", "Target United States", "AE Top Accounts", 47, 28, 0], ["Ellen Wilkinson", "Target United States", "AE Top Accounts", 47, 27, 1], ["Pablo Diaz", "Pepsico United States", "Uncategorized", 42, 26, 0], ["Daphne Tan", "Samsung Electronics Netherlands", "Cold Contacts", 28, 26, 0], ["Jennifer Johnson", "Target United States", "AE Top Accounts", 53, 26, 0], ["Lisa Knack", "Target United States", "AE Top Accounts", 67, 26, 0], ["Sally Bushart", "Schottenstein Stores United States", "Uncategorized", 37, 26, 0], ["Allison Falken", "Nature's Bakery", "Cold Contacts", 28, 26, 1], ["Bre Engels", "Target United States", "AE Top Accounts", 53, 25, 3], ["Tina Angerer", "Target United States", "AE Top Accounts", 50, 25, 2], ["Flora Ekpe-Idang", "Target United States", "Uncategorized", 45, 25, 1], ["Gayathri Kushalappa", "Target United States", "AE Top Accounts", 41, 25, 0], ["Amy Ware", "Torani (R. Torre & Co.)", "Uncategorized", 28, 25, 0], ["Kareem Ghobrial", "Wayfair United States", "AE Top Accounts", 52, 24, 0], ["Melissa Keeler", "Wayfair United States", "AE Top Accounts", 39, 24, 0], ["Kristina Gong", "Wayfair United States", "AE Top Accounts", 35, 24, 1], ["Travis Garcia", "PrettyLitter", "Cold Contacts", 47, 24, 0], ["Le'Spencer Walker", "Target United States", "Uncategorized", 48, 24, 1], ["Alex Kelm", "Target United States", "Uncategorized", 39, 23, 2], ["dataweave@mystartupcfo.com", "myStartUpCFO", "Partners (Active)", 23, 23, 0], ["Betsy Fitzgibbons", "Mars", "Uncategorized", 25, 23, 0], ["Kate Wilson", "5Hour Energy United States", "QLs", 49, 23, 0], ["Paige LaFlamme", "Garnet Hill Inc. United States", "Uncategorized", 26, 23, 0], ["Pete Cifaloglio", "Pepsico United States", "Uncategorized", 43, 23, 0], ["Monica Alderson", "Hallmark United States", "Uncategorized", 27, 22, 0], ["Bjorn Laukli", "Rakuten Americas United States", "Uncategorized", 26, 22, 0], ["Maximiliano Gomez", "Pepsico United States", "Uncategorized", 28, 22, 0], ["Devin Zandonella", "Wayfair United States", "AE Top Accounts", 39, 22, 0], ["Andrew Adelfio", "Wayfair United States", "AE Top Accounts", 40, 22, 0], ["Laura Lee", "Target United States", "AE Top Accounts", 36, 22, 1], ["Steve Makredes", "Target", "Uncategorized", 30, 22, 0], ["Andrea Hoppes", "Signet Jewelers", "Uncategorized", 40, 22, 0], ["David Deily", "3Cinteractive United States", "Uncategorized", 24, 22, 0], ["Renee Doerre", "Target United States", "AE Top Accounts", 45, 22, 0], ["Gopi Reddy", "Mars", "Uncategorized", 27, 21, 0], ["Lars Furtwaengler", "Pureformulas United States", "Uncategorized", 27, 21, 0], ["Suzanne Mowery", "GE Appliances United States", "Uncategorized", 35, 21, 0], ["Paul Heffernan", "LG Electronics Inc. United States", "Uncategorized", 29, 21, 0], ["Soumen Chowdhury", "Target United States", "AE Top Accounts", 44, 21, 2], ["Stuart Tinsley", "Cantoni Lp United States", "Uncategorized", 39, 21, 0], ["David Rolfs", "Target United States", "AE Top Accounts", 51, 21, 0], ["Erin Flaherty", "Lek", "Partners (Active)", 21, 21, 0]],
+    abm: [['AI Shopping Data - ROW (MQL/MGL/Opens)', 478, 19.9, 10.5], ['PDP Brand - NA', 156, 17.9, 3.6],
+      ['PDP Retail - RoW', 178, 17.4, 3.2], ['PDP Retail - NA', 116, 15.5, 0], ['AI Shopping Data - NA (Cold)', 786, 14.8, 12.1],
+      ['PDP Brand - RoW', 135, 14.8, 0], ['AI Shopping Data - ROW (Acct-Based Cold, AE Top)', 1555, 12.1, 0],
+      ['AI Shopping Data - NA (Active Deal/MGL/QL)', 440, 11.1, 8.2], ['PDP Brand 2 - NA', 227, 2.2, 0],
+      ['PDP Retail - RoW (Top AE Accounts)', 2832, 1.8, 3.8], ['PDP Brand - RoW (Top AE Accounts)', 435, 1.6, 0], ['PDP Retail 2 - NA', 941, 0.7, 14.3]],
+    team: [["You (Shai)", [["OKR: Top-of-Funnel Lead Creation", "Q2 closed at 58 of 75 | Q3 goal recalibrated to 60-65, 6 leads in (Oct 5)", [["Lead flow & pipeline", "", [["FYTD 124 leads, 58 conversions (47%); pipeline $5.48M across 63 deals; October opened with 6 leads incl. Kohl's Elise Werry qualifying and converting day one, plus a new $100K Qualified deal from a Website lead (Joe, Oct 5)", "HubSpot, Oct 5"]]], ["Groceryshop + event strategy reset", "", [["Debrief run Oct 2: ~1,200 attendees vs 4,000 advertised, weak booth spot; strategy reset to dinner-first with cheap list-access booths; Ruiz Foods, Campbell's, Uncle Giuseppe's and a board-level Wawa intro are the priority threads, follow-ups due EOD Oct 5 against a 16-MQL goal", "Fathom, Oct 2"], ["You owe the debrief notes and the AI/data conference list (Dreamforce, CES, DataCon, SaaStr); RetailClub debrief (Sep 30) confirmed hosted meetings (~$6-7K) beat $16.5K booths", "Fathom, Sep 30 + Oct 2"]]], ["Q3 OKR reset", "", [["Growth L0 with Karthik (Oct 1): Q2 closed ~$325K vs $1.8M target, lead-to-opp 48% vs 60% goal; H2 pivots to a few engines incl. 10 on-site customer workshops; your actions: simplified email personas for A/B tests, AI-content tracking, ROW localized content, Fathom discovery-call scoring", "Fathom, Oct 1"], ["S&M OKRs (Sep 30): year-end revenue reset to ~$4M; fuel pricing flagged as the 90%-margin wedge; you owe the NACS 1P-vs-3P + fuel-pricing 2-pagers, the S&M OKR deck and the expansion working sheet", "Fathom, Sep 30"]]]]], ["OKR: Drive AI Thought Leadership", "Target 30", [["Homepage relaunch", "minimal", [["Nothing shipped since the Sep 28 CMS session; Shubho owes the product-showcase + gradient modules, you owe staged-content check, images and the design-options call; Greg to swap the homepage strip for AI dashboards", "Fathom, Sep 28-30"]]], ["QuickLizard podcast", "", [["Recording confirmed for Thursday Oct 8, 3pm ET (Eddy: 'Thursday works'); talking-points review with Eddy Tuesday morning and the topic discussion with Karthik on your calendar Tuesday night", "Slack DM + Calendar, Oct 5"]]], ["Thought leadership pipeline", "", [["Sanket shared the 'Human-on-the-loop: scale with control in retail AI' draft for your review (Oct 3); Will Hargreaves exec call holds Oct 8 with no prep logged; invent.ai joint press release incoming (Zach Munoz drafting)", "Gmail Oct 3 + Fathom Oct 1"]]]]]]], ["Ishwarya", [["OKR: Cross-Solution Positioning (website)", "Target 100%", [["Homepage build", "no movement", [["She still owes Shubho the hero image, stats, 'Under the Hood' motion refs and the module spec from Sep 28; no activity this week", "Fathom, Sep 28"]]], ["Eva launch", "", [["15-20s Eva explainer video assigned with Nandini; landing page waits on your review to go live", "Fathom, Sep 30"]]], ["Partner enablement", "", [["Priyank asked for a 2-slide partner deck per product with German examples", "Gmail, Oct 5"]]]]], ["OKR: Customer Advocacy & Proof Assets", "Target 5", [["Case studies", "", [["Simple Tire approved as the first branded retail case study, live next week; queue set: Douglas update, Zappos, Pernod Ricard, Delivery Hero, Jumia, Lactalis (drafting with Jeeva); Bush Brothers draft to share", "Fathom, Sep 29-30"]]], ["Advocacy ops", "", [["$5-10K service-credit incentive model agreed; she pulls Prism health into the advocacy tracker daily; Bloomingdale's testimonial re-ask in motion via Brigid; incentive payouts blocked on the Brex card issue she's escalating to Uttam", "Fathom, Sep 29 + Oct 1"]]]]], ["OKR: GTM Enablement & Kits", "Targets 6 + 6", [["Wiki & kits", "minimal", [["Only the German 2-slider request moved; no wiki or kit updates logged this week", "Gmail, Oct 5"]]]]], ["OKR: Collateral Repository", "Target 100%", [["Repository relaunch", "no movement", [["Carried since Sep 21; no activity in the window", "carried"]]]]]]], ["Aditi", [["OKR: ABM Coverage & Email Program", "Target 12% open rate", [["ROW / UK-Germany expansion", "", [["Sale-event analyses planned across India, UK and Germany (Oct 5 brief to Eddy + Jeeva); Priyank delivered the Germany top-200 list (150 retail + 50 brands) with Latha extracting profiles; Black Friday content plan extended to UK/DE with Jeevan", "Gmail Oct 5 + Fathom Sep 29"]]], ["Email program", "", [["274.8K delivered at 6.9% opens across 21,979 categorized contacts; simplified personas for A/B testing agreed as a Q3 action", "HubSpot Oct 5 + Fathom Oct 1"]]], ["Cold-email strategy session", "no movement", [["Session with you still unscheduled, carried since the Sep 24 ROW sync", "carried"]]]]], ["OKR: AI Narrative & Content Creation", "Targets 9 + 6", [["Interactive dashboards", "minimal", [["UK/DE/India expansion agreed (2-3 dashboards + 2-3 sale-event articles on Shubho's template with Jeeva/BAT data), but Pet Food and Coffee & Tea are still staged with nothing new live since Sep 28", "Fathom, Sep 29-30"]]], ["Dairy blog", "", [["Published Oct 5: Upasna shipped the AI dairy visibility blog in the chart-led structure from your Sep 28 notes", "Slack, Oct 5"]]]]], ["OKR: Brand Amplification & Distribution", "Targets 2,500 + 12", [["GCC Bangalore roundtable", "", [["She owns venue, save-the-date, Slack channel and the E-Square Summit overlap check; Oct 5 quick connect held (Sanket declined but offered content help); tentative end-of-October date", "Fathom Sep 30 + Gmail Oct 5"]]]]]]], ["Greg", [["OKR: Conferences & Trade Shows", "Target 16", [["Groceryshop follow-through", "", [["Debrief Oct 2 with all follow-up emails due EOD Oct 5 toward 16 MQLs; he tags the Don Brett dinner contacts in HubSpot and works the Marty.com thread; Don Brett's September invoice awaits your approval", "Fathom Oct 2 + Gmail Oct 5"]]], ["NACS Show (this week)", "", [["At NACS Oct 7-8; campaign sat at 2 responses from 4 emails so messaging was revised with resends Oct 1 and Oct 5, Costco added, and the Price Advantage client list compiled for Dan's meeting booking; Wawa CMO dinner angle in play", "Fathom Sep 30 + Gmail"]]], ["Inbound routing", "", [["3M's global Digital Shelf RFP routed to Priyank with Dan looped in on his 2024 opportunity; a 500K-products-a-year publisher inbound pushed to Priyank same day", "Gmail, Oct 5"]]], ["New event pipeline", "", [["PIEM New York still undecided (event ran Oct 2); fresh pitches logged: Path to Purchase, Impact 50 Forum (Oct 22), mill-all.com (QL's John Gilbo to vouch)", "Gmail, Oct 2-5"]]]]], ["OKR: Private Roundtables", "Target 8", [["RetailClub", "", [["Debrief closed Sep 30: hosted-meetings model validated; At Home similarity-matching POC, Snowflake-native app (Nate Moran) and Kohl's image-matching re-engagement are the carry-forward threads", "Fathom, Sep 30"]]]]], ["OKR: Wiser Integrated Campaign", "Target 4", [["Campaign", "no movement", [["Still 4 meeting-stage leads (84 Lumber, AHF, Prym, STI Firestop); no activity in the window", "carried since Aug"]]]]]]], ["Upasana", [["No Q2 OKRs owned in the sheet - content execution support", "", [["Dairy blog", "", [["Updated the blog per the Sep 29 review and published it Oct 5 ('Blog published. Should reflect in sometime.')", "Slack, Sep 29 + Oct 5"]]], ["BA x Marketing content", "", [["In the Sep 29 session that set the Black Friday UK/DE plan and the Germany-first ROW pricing report (due ~3 weeks)", "Fathom, Sep 29"]]]]]]], ["Latha", [["No Q2 OKRs owned in the sheet - funnel operations support", "", [["Germany top-200 extraction", "", [["Extracting profiles from Priyank's 150-retailer + 50-brand Germany list in rank order", "Gmail, Oct 5"]]], ["Tire-retailer campaign", "", [["Building the US/CA tire-retailer list (SalesNav/ZoomInfo) by EOW for the Simple Tire campaign; Greg drafts email 1", "Fathom, Sep 30"]]], ["Funnel ops", "", [["Standardizing sub-industries with mandatory NA city/state enrichment, updating lost-lead reporting, sending a tool proposal; sat in on the Elite Foods discovery with Prashant (Oct 5)", "Fathom, Sep 30 + Oct 5"]]]]]]]],
+    attn: [["Review", "Waiting on you: Groceryshop debrief notes and the AI/data conference list (owed since Oct 2), Don Brett September invoice approval, Eva landing page review, staged homepage content + images for Shubho, and Sanket's Human-on-the-loop draft (Oct 3)."], ["Owed", "S&M OKR deck and expansion working sheet to Krish; NACS 1P-vs-3P and fuel-pricing 2-pagers; graphics designer JD for Karthik (role approved Sep 29, 15-20L); design-options call with Shubho and Mahesh; cold-email strategy session with Aditi."], ["Blocked", "Advocacy incentive payouts blocked on the Brex card issue (Ishwarya escalating to Uttam); ARK/Top Shelf 2-pager still carried; LinkedIn Sales Navigator expansion (2 licenses, about 1.86L for 10 months) awaiting a decision."], ["Decision", "PIEM New York still undecided (event ran Oct 2); Impact 50 Forum (Oct 22) and Path to Purchase pitches in; dinner-first event model adopted with big vertical-show booths dropped. Will Hargreaves exec call Oct 8."], ["Risk", "Q2 closed at 58 of 75 leads with ~$325K closed revenue vs the $1.8M target; lead-to-opp 48% vs 60% goal; 4 of 7 event deals now Deferred with Target SKU 360 flipping to Deferred (silent 108 days); homepage, dashboards and the Wiser campaign all show no or minimal movement this week."], ["Win", "Pipeline at $5.48M across 63 deals with a new $100K deal Oct 5; October opened with 6 leads and Kohl's converting day one; The dairy AI-visibility blog went live Oct 5; Simple Tire case study approved and live next week; G2 up to 4.5; Groceryshop produced Wawa, Ruiz Foods, Campbell's and Uncle Giuseppe's threads; RetailClub AI Festival added 22 MGLs to the funnel."], ["Note", "Content and Social trackers haven't been updated since Sep 28 (GA data through Sep 28), so those two tabs carry their Sep 28 snapshots; all connectors healthy. Slack search quirk found: date filters combined with OR keywords return nothing, so team statuses are now cross-checked with single-keyword DM searches and Calendar."]]
+  };
+
+  /* ================= renderers ================= */
+  function renderOverview() {
+    var i, lt = 0, cv = 0, pA = 0, pN = 0;
+    for (i = 0; i < S.months.length; i++) { lt += S.leads.us[i] + S.leads.row[i]; cv += S.leads.conv[i]; pA += S.pipe.amt[i] || 0; pN += S.pipe.n[i] || 0; }
+    $('ovLeads').textContent = lt;
+    $('ovLeadsD').textContent = cv + ' → opp (' + (lt ? Math.round(cv / lt * 100) : 0) + '%)';
+    $('ovPipe').textContent = fmtM(pA);
+    $('ovPipeD').textContent = pN + ' new-business deals';
+    var cvw = 0; S.content.forEach(function (r) { cvw += r[2]; });
+    $('ovContent').textContent = cvw.toLocaleString('en-US');
+    var del = 0, op = 0; S.segments.forEach(function (r) { del += r[2]; op += r[3]; });
+    $('ovEmail').textContent = (del ? (op / del * 100).toFixed(1) : '0') + '%';
+    $('ovEmailD').textContent = Math.round(del / 1e3) + 'K delivered lifetime';
+    $('hlLeads').textContent = lt + ' leads, ' + (lt ? Math.round(cv / lt * 100) : 0) + '% convert to opportunity';
+    var qPct = '';
+    S.dealTotals.forEach(function (g) {
+      if (g[0].indexOf('Open deals by stage') !== 0) return;
+      var tot = 0, q = 0;
+      g[1].forEach(function (r) { tot += r[2]; if (r[0] === 'Qualified') q += r[2]; });
+      if (tot) qPct = '; ' + Math.round(q / tot * 100) + '% of open value at Qualified';
+    });
+    $('hlPipe').textContent = fmtM(pA) + ' created' + qPct;
+    var f = [0, 0, 0]; S.funnel.forEach(function (r) { f[0] += r[1]; f[1] += r[2]; f[2] += r[3]; });
+    var evA = 0; S.evDeals.forEach(function (r) { evA += r[1]; });
+    $('hlEvents').textContent = f[0] + ' MGLs → ' + f[1] + ' MRLs → ' + f[2] + ' MQLs; ' + fmtM(evA) + ' event pipeline';
+  }
+  function renderQuarterSummary() {
+    var Q1 = { '04': 1, '05': 1, '06': 1 };
+    function split(perMonth) {
+      var q1 = 0, q2 = 0;
+      S.months.forEach(function (m, i) { var v = perMonth[i] || 0; if (Q1[m.slice(5, 7)]) q1 += v; else q2 += v; });
+      return [q1, q2];
+    }
+    function findCut(name) { var out = null; S.leadCuts.forEach(function (c) { if (c[0] === name) out = c[1]; }); return out || []; }
+    function findPivot(name) { var out = null; S.dealPivots.forEach(function (c) { if (c[0] === name) out = c[1]; }); return out || []; }
+    function pipeOf(pivot, re) { var amt = 0; pivot.forEach(function (r) { if (re.test(r[0])) r[1].forEach(function (v) { amt += v || 0; }); }); return amt; }
+    function table(title, rows) {
+      var h = '<table><tr><th>' + title + '</th><th class="num">Q1 (Apr–Jun)</th><th class="num">Q2 (QTD)</th><th class="num">Total Leads</th><th class="num">Total Opps</th><th class="num">Conversion</th><th class="num">Pipeline ($)</th></tr>';
+      var tq1 = 0, tq2 = 0, topp = 0, tpipe = 0;
+      rows.forEach(function (r) {
+        var q = r[1] ? split(r[1]) : [null, null];
+        var tot = q[0] === null ? null : q[0] + q[1];
+        tq1 += q[0] || 0; tq2 += q[1] || 0; topp += r[2] || 0; tpipe += r[3];
+        h += '<tr><td>' + esc(r[0]) + '</td><td class="num">' + (q[0] === null ? '—' : q[0]) + '</td><td class="num">' + (q[1] === null ? '—' : q[1]) + '</td><td class="num">' + (tot === null ? '—' : tot) + '</td><td class="num">' + (r[2] === null ? '—' : r[2]) + '</td><td class="num">' + (tot ? Math.round(r[2] / tot * 100) + '%' : '—') + '</td><td class="num">' + fmtM(r[3]) + '</td></tr>';
+      });
+      h += '<tr><td><strong>Total</strong></td><td class="num"><strong>' + tq1 + '</strong></td><td class="num"><strong>' + tq2 + '</strong></td><td class="num"><strong>' + (tq1 + tq2) + '</strong></td><td class="num"><strong>' + topp + '</strong></td><td class="num"><strong>' + ((tq1 + tq2) ? Math.round(topp / (tq1 + tq2) * 100) + '%' : '—') + '</strong></td><td class="num"><strong>' + fmtM(tpipe) + '</strong></td></tr></table>';
+      return h;
+    }
+    var regCut = findCut('Region (Cumulated)'), regPiv = findPivot('Region (Cumulated)');
+    var regRows = regCut.map(function (r) { return [r[0], r[1], r[2], pipeOf(regPiv, new RegExp('^' + r[0] + '$'))]; });
+    var coreCut = findCut('Core vs Non-core'), corePiv = findPivot('Core vs Non-core');
+    var coreRows = coreCut.map(function (r) {
+      return [r[0].replace(' Lead', ''), r[1], r[2], pipeOf(corePiv, /^Core/i.test(r[0]) ? /^Core/i : /^Non.core/i)];
+    });
+    var un = pipeOf(corePiv, /^Unassigned$/);
+    if (un) coreRows.push(['Unassigned (deals only)', null, null, un]);
+    $('qSummary').innerHTML = table('Region', regRows) + '<div style="height:10px"></div>' + table('Core vs Non-Core', coreRows) + '<div class="note">Pipeline = new-business deals created since Apr 1, deduplicated. Core/Non-Core for pipeline comes from each deal’s associated contact (lead-level tag), falling back to the deal-level tag when no contact is associated; Unassigned = neither tag set. Recomputes on refresh.</div>';
+  }
+  function renderLeadKpis() {
+    var tot = 0, conv = 0, i;
+    for (i = 0; i < S.months.length; i++) { tot += S.leads.us[i] + S.leads.row[i]; conv += S.leads.conv[i]; }
+    var pAmt = 0, pN = 0;
+    for (i = 0; i < S.months.length; i++) { pAmt += S.pipe.amt[i] || 0; pN += S.pipe.n[i] || 0; }
+    $('kpiLeads').innerHTML =
+      '<div class="kpi"><div class="label">Qualified leads FYTD</div><div class="val">' + tot + '</div><div class="delta flat">Since Apr 1, 2026</div></div>' +
+      '<div class="kpi"><div class="label">Converted to opportunity</div><div class="val">' + conv + '</div><div class="delta up">' + pct(conv, tot) + ' conversion</div></div>' +
+      '<div class="kpi"><div class="label">Pipeline created</div><div class="val">' + fmtM(pAmt) + '</div><div class="delta flat">New business only</div></div>' +
+      '<div class="kpi"><div class="label">Deals created</div><div class="val">' + pN + '</div><div class="delta flat">Excl. POC &amp; cross/upsell</div></div>' +
+      '<div class="kpi"><div class="label">Avg deal size</div><div class="val">' + (pN ? fmtM(pAmt / pN) : '—') + '</div><div class="delta flat">Pipeline / deals</div></div>';
+  }
+
+  function renderLeadCuts() {
+    var h = '', mHead = '';
+    S.months.forEach(function (m) { mHead += '<th class="num">' + mLbl(m) + '</th>'; });
+    S.leadCuts.forEach(function (grp) {
+      h += '<h4>' + esc(grp[0]) + '</h4><table><tr><th></th>' + mHead + '<th class="num">Total</th><th class="num">Opps</th><th class="num">Conv %</th></tr>';
+      var cT = S.months.map(function () { return 0; }), gT = 0, oT = 0;
+      grp[1].forEach(function (r) {
+        var tot = 0;
+        r[1].forEach(function (v, i) { cT[i] += v; tot += v; });
+        gT += tot; oT += r[2];
+        h += '<tr><td>' + esc(r[0]) + '</td>';
+        r[1].forEach(function (v) { h += '<td class="num">' + v + '</td>'; });
+        h += '<td class="num"><strong>' + tot + '</strong></td><td class="num">' + r[2] + '</td><td class="num">' + pct(r[2], tot) + '</td></tr>';
+      });
+      h += '<tr class="total"><td>Total</td>';
+      cT.forEach(function (v) { h += '<td class="num">' + v + '</td>'; });
+      h += '<td class="num">' + gT + '</td><td class="num">' + oT + '</td><td class="num">' + pct(oT, gT) + '</td></tr></table>';
+    });
+    h += '<h4>Country</h4><table><tr><th></th><th class="num">Leads</th><th class="num">Opps</th><th class="num">Conv %</th></tr>';
+    var lt = 0, ot = 0;
+    S.leadCountry.forEach(function (r) {
+      lt += r[1]; ot += r[2];
+      h += '<tr><td>' + esc(r[0]) + '</td><td class="num">' + r[1] + '</td><td class="num">' + r[2] + '</td><td class="num">' + pct(r[2], r[1]) + '</td></tr>';
+    });
+    h += '<tr class="total"><td>Total</td><td class="num">' + lt + '</td><td class="num">' + ot + '</td><td class="num">' + pct(ot, lt) + '</td></tr></table>';
+    $('leadCuts').innerHTML = h;
+  }
+
+  function totalsByG(items, dimFn, orderList) {
+    var a = {};
+    items.forEach(function (it) { var d = dimFn(it); d = d == null ? 'Unassigned' : clean(d); a[d] = a[d] || [0, 0]; a[d][0]++; a[d][1] += it.amt; });
+    var arr = Object.keys(a).map(function (k) { return [k, a[k][0], a[k][1]]; });
+    if (orderList) arr.sort(function (x, y) { return ((orderList.indexOf(x[0]) + 1) || 99) - ((orderList.indexOf(y[0]) + 1) || 99); });
+    else arr.sort(function (x, y) { return y[2] - x[2]; });
+    return arr;
+  }
+  function buildPipeViews(rows) {
+    return {
+      pivots: [
+        ['Region (Cumulated)', tallyPivot(rows, function (d) { return d.region; }, function (d) { return d.amt; }, S.months)],
+        ['Core vs Non-core', tallyPivot(rows, function (d) { return d.core || 'Unassigned'; }, function (d) { return d.amt; }, S.months)]
+      ],
+      totals: [
+        ['Engagement Status', totalsByG(rows, function (d) { return d.eng; }, ENG_ORDER)],
+        ['Open deals by stage', totalsByG(rows.filter(function (d) { return d.eng === 'Open'; }), function (d) { return d.stage; }, STAGE_ORDER)],
+        ['Channel (via associated contact)', totalsByG(rows, function (d) { return d.channel; })],
+        ['Deal Owner (AE)', totalsByG(rows, function (d) { return d.owner; })],
+        ['Country', totalsByG(rows, function (d) { return d.country; })]
+      ]
+    };
+  }
+  function aeRows() {
+    var f = S.aeFilter;
+    if (!f || f === 'ALL' || !S.dealRows) return S.dealRows;
+    return S.dealRows.filter(function (d) { return clean(d.owner) === f; });
+  }
+  function buildAeFilter() {
+    var sel = $('aeFilter');
+    if (!sel || !S.dealRows) return;
+    var names = {};
+    S.dealRows.forEach(function (d) { names[clean(d.owner)] = 1; });
+    var keep = S.aeFilter || 'ALL';
+    var h = '<option value="ALL">All Lead AEs</option>';
+    Object.keys(names).sort().forEach(function (n) { h += '<option value="' + esc(n) + '"' + (n === keep ? ' selected' : '') + '>' + esc(n) + '</option>'; });
+    sel.innerHTML = h;
+    if (!sel._wired) { sel._wired = 1; sel.addEventListener('change', function () { S.aeFilter = sel.value; renderDealCuts(); }); }
+  }
+  function renderDealCuts() {
+    var pivots = S.dealPivots, totals = S.dealTotals, badge = '';
+    if (S.dealRows && S.dealRows.length) {
+      var v = buildPipeViews(aeRows());
+      pivots = v.pivots; totals = v.totals;
+      if (S.aeFilter && S.aeFilter !== 'ALL') badge = '<div class="note">Filtered to Lead AE: <strong>' + esc(S.aeFilter) + '</strong> — every pipeline table below reflects only this AE’s deals.</div>';
+    }
+    var h = badge, mHead = '';
+    S.months.forEach(function (m) { mHead += '<th class="num">' + mLbl(m) + '</th>'; });
+    pivots.forEach(function (grp) {
+      h += '<h4>' + esc(grp[0]) + '</h4><table><tr><th></th>' + mHead + '<th class="num">Total</th></tr>';
+      var cT = S.months.map(function () { return 0; }), gT = 0;
+      grp[1].forEach(function (r) {
+        var tot = 0;
+        r[1].forEach(function (v, i) { cT[i] += v; tot += v; });
+        gT += tot;
+        h += '<tr><td>' + esc(r[0]) + '</td>';
+        r[1].forEach(function (v) { h += '<td class="num">' + fmtM(v) + '</td>'; });
+        h += '<td class="num"><strong>' + fmtM(tot) + '</strong></td></tr>';
+      });
+      h += '<tr class="total"><td>Total</td>';
+      cT.forEach(function (v) { h += '<td class="num">' + fmtM(v) + '</td>'; });
+      h += '<td class="num">' + fmtM(gT) + '</td></tr></table>';
+    });
+    totals.forEach(function (grp) {
+      h += '<h4>' + esc(grp[0]) + '</h4><table><tr><th></th><th class="num">Deals</th><th class="num">Pipeline</th></tr>';
+      var n = 0, sm = 0;
+      grp[1].forEach(function (r) {
+        n += r[1]; sm += r[2];
+        h += '<tr><td>' + esc(r[0]) + '</td><td class="num">' + r[1] + '</td><td class="num">' + fmtM(r[2]) + '</td></tr>';
+      });
+      h += '<tr class="total"><td>Total</td><td class="num">' + n + '</td><td class="num">' + fmtM(sm) + '</td></tr></table>';
+    });
+    $('dealCuts').innerHTML = h;
+  }
+
+  function renderFunnel() {
+    var h = '<table><tr><th>Contact source</th><th class="num">MGLs</th><th class="num">MRLs</th><th class="num">MQLs</th></tr>';
+    var a = 0, b = 0, c = 0;
+    S.funnel.forEach(function (r) {
+      a += r[1]; b += r[2]; c += r[3];
+      h += '<tr><td>' + esc(r[0]) + '</td><td class="num">' + r[1] + '</td><td class="num">' + r[2] + '</td><td class="num">' + r[3] + '</td></tr>';
+    });
+    h += '<tr class="total"><td>Report total</td><td class="num">' + a + '</td><td class="num">' + b + '</td><td class="num">' + c + '</td></tr></table>';
+    $('evFunnel').innerHTML = h;
+  }
+
+  function renderEvDeals() {
+    var h = '<table><tr><th>Deal</th><th class="num">Amount</th><th>Stage</th><th>Status</th><th>Owner</th><th>Last email</th></tr>';
+    var tot = 0;
+    S.evDeals.forEach(function (d) {
+      tot += d[1];
+      var pill = d[3] === 'Open' ? 'g' : d[3] === 'Deferred' ? 'a' : 'b';
+      h += '<tr><td>' + esc(d[0]) + '</td><td class="num">$' + d[1].toLocaleString() + '</td><td>' + esc(d[2]) + '</td><td><span class="pill ' + pill + '">' + esc(d[3]) + '</span></td><td>' + esc(d[4]) + '</td><td>' + (d[6] ? '<span class="stale">' + esc(d[5]) + '</span>' : esc(d[5])) + '</td></tr>';
+    });
+    h += '<tr class="total"><td>Total</td><td class="num">$' + tot.toLocaleString() + '</td><td colspan="4"></td></tr></table>';
+    $('evDeals').innerHTML = h;
+  }
+
+  function renderContentTable() {
+    var h = '<table><tr><th>Piece</th><th>Type</th><th class="num">Views</th><th class="num">Users</th><th class="num">Eng (s)</th></tr>';
+    S.content.forEach(function (c) {
+      h += '<tr><td>' + esc(c[0]) + '</td><td>' + esc(c[1]) + '</td><td class="num">' + c[2] + '</td><td class="num">' + c[3] + '</td><td class="num">' + c[4] + '</td></tr>';
+    });
+    $('tblContent').innerHTML = h + '</table>';
+    var tot = 0; S.content.forEach(function (c) { tot += c[2]; });
+    $('kContentTotal').textContent = tot.toLocaleString();
+  }
+
+  function renderQuarters() {
+    function block(title, rows) {
+      var h = '<table' + (title === 'X (Twitter)' ? ' style="margin-top:12px;"' : '') + '><tr><th>' + title + '</th><th class="num">JFM</th><th class="num">AMJ</th><th class="num">JAS (to Aug 10)</th><th class="num">Δ AMJ→JAS</th></tr>';
+      rows.forEach(function (r) {
+        var has3 = r.length > 3;
+        var d = has3 && r[2] ? (r[3] - r[2]) / r[2] * 100 : (r[1] ? (r[2] - r[1]) / r[1] * 100 : 0);
+        h += '<tr><td>' + esc(r[0]) + '</td><td class="num">' + r[1].toLocaleString() + '</td><td class="num">' + r[2].toLocaleString() + '</td><td class="num">' + (has3 ? r[3].toLocaleString() : '—') + '</td><td class="num ' + (d >= 0 ? 'up' : 'down') + '">' + (d >= 0 ? '▲ +' : '▼ ') + Math.round(Math.abs(d)) + '%</td></tr>';
+      });
+      return h + '</table>';
+    }
+    $('tblQuarters').innerHTML = block('LinkedIn', S.quarters.linkedin) + block('X (Twitter)', S.quarters.x);
+  }
+
+  function renderEmailKpis() {
+    var d = 0, o = 0, k = 0, n = 0;
+    S.segments.forEach(function (r) { n += r[1]; d += r[2]; o += r[3]; k += r[4]; });
+    var best = null, worst = null;
+    S.segments.forEach(function (r) {
+      if (r[2] < 500) return;
+      var rate = r[3] / r[2];
+      if (!best || rate > best[1]) best = [r[0], rate];
+      if (!worst || rate < worst[1]) worst = [r[0], rate];
+    });
+    $('kpiEmail').innerHTML =
+      '<div class="kpi"><div class="label">Emails delivered (lifetime)</div><div class="val">' + Math.round(d / 1000) + 'K</div><div class="delta flat">' + n.toLocaleString() + ' categorized contacts</div></div>' +
+      '<div class="kpi"><div class="label">Opens</div><div class="val">' + (o / 1000).toFixed(1) + 'K</div><div class="delta flat">' + (o / d * 100).toFixed(1) + '% open rate</div></div>' +
+      '<div class="kpi"><div class="label">Clicks</div><div class="val">' + k.toLocaleString() + '</div><div class="delta flat">' + (k / o * 100).toFixed(1) + '% CTOR</div></div>' +
+      '<div class="kpi"><div class="label">Best segment</div><div class="val">' + esc(best ? best[0] : '—') + '</div><div class="delta up">' + (best ? (best[1] * 100).toFixed(1) + '% open rate' : '') + '</div></div>' +
+      '<div class="kpi"><div class="label">Weakest segment</div><div class="val">' + esc(worst ? worst[0] : '—') + '</div><div class="delta down">' + (worst ? (worst[1] * 100).toFixed(1) + '% open rate' : '') + '</div></div>';
+  }
+
+  function renderSegments() {
+    var h = '<table><tr><th>Segment</th><th class="num">Contacts</th><th class="num">Delivered</th><th class="num">Opens</th><th class="num">Clicks</th><th class="num">Open Rate %</th><th class="num">CTOR %</th></tr>';
+    var tn = 0, td = 0, to = 0, tk = 0;
+    S.segments.forEach(function (s) {
+      tn += s[1]; td += s[2]; to += s[3]; tk += s[4];
+      var or = s[2] ? (s[3] / s[2] * 100) : 0;
+      h += '<tr><td>' + esc(s[0]) + '</td><td class="num">' + s[1].toLocaleString() + '</td><td class="num">' + s[2].toLocaleString() +
+        '</td><td class="num">' + s[3].toLocaleString() + '</td><td class="num">' + s[4] + '</td><td class="num' + (or < 5 ? ' down' : '') + '">' +
+        or.toFixed(1) + '</td><td class="num">' + (s[3] ? (s[4] / s[3] * 100).toFixed(1) : '—') + '</td></tr>';
+    });
+    h += '<tr class="total"><td>Total</td><td class="num">' + tn.toLocaleString() + '</td><td class="num">' + td.toLocaleString() +
+      '</td><td class="num">' + to.toLocaleString() + '</td><td class="num">' + tk + '</td><td class="num">' + (to / td * 100).toFixed(1) +
+      '</td><td class="num">' + (tk / to * 100).toFixed(1) + '</td></tr></table>';
+    $('tblSeg').innerHTML = h;
+  }
+
+  function renderAbm() {
+    var h = '<table><tr><th>Campaign</th><th class="num">Delivered</th><th class="num">Open %</th><th class="num">CTOR %</th></tr>';
+    S.abm.forEach(function (c) {
+      h += '<tr><td>' + esc(c[0]) + '</td><td class="num">' + c[1].toLocaleString() + '</td><td class="num' + (c[2] < 3 ? ' down' : '') + '">' + c[2] + '</td><td class="num">' + c[3] + '</td></tr>';
+    });
+    $('tblAbm').innerHTML = h + '</table>';
+  }
+
+  function buildCatDropdown() {
+    var seen = {}, cats = [];
+    S.emContacts.forEach(function (c) { if (!seen[c[2]]) { seen[c[2]] = 1; cats.push(c[2]); } });
+    cats.sort();
+    var opts = '<option value="ALL">All categories</option>';
+    cats.forEach(function (c) { opts += '<option value="' + esc(c) + '">' + esc(c) + '</option>'; });
+    $('emCat').innerHTML = opts;
+  }
+
+  function renderEngagement() {
+    var sel = $('emCat').value || 'ALL';
+    var rows = S.emContacts.filter(function (c) { return sel === 'ALL' || c[2] === sel; });
+    var h = '<table><tr><th>Contact</th><th>Company</th><th>Category</th><th class="num">Del.</th><th class="num">Opens</th><th class="num">Clicks</th></tr>';
+    if (!rows.length) h += '<tr><td colspan="6" style="color:#64708a">No contacts in this category.</td></tr>';
+    rows.slice(0, 30).forEach(function (c) {
+      h += '<tr><td>' + esc(c[0]) + '</td><td>' + esc(c[1]) + '</td><td>' + esc(c[2]) + '</td><td class="num">' + c[3] + '</td><td class="num"><strong>' + c[4] + '</strong></td><td class="num">' + c[5] + '</td></tr>';
+    });
+    $('emContacts').innerHTML = h + '</table>';
+    var comp = {};
+    rows.forEach(function (c) {
+      if (!comp[c[1]]) comp[c[1]] = { n: 0, o: 0, k: 0 };
+      comp[c[1]].n++; comp[c[1]].o += c[4]; comp[c[1]].k += c[5];
+    });
+    var arr = Object.keys(comp).map(function (k) { return [k, comp[k]]; }).sort(function (a, b) { return b[1].o - a[1].o; });
+    var h2 = '<table><tr><th>Company</th><th class="num">Contacts</th><th class="num">Opens</th><th class="num">Clicks</th></tr>';
+    if (!arr.length) h2 += '<tr><td colspan="4" style="color:#64708a">No companies in this category.</td></tr>';
+    arr.slice(0, 30).forEach(function (r) {
+      h2 += '<tr><td>' + esc(r[0]) + '</td><td class="num">' + r[1].n + '</td><td class="num"><strong>' + r[1].o + '</strong></td><td class="num">' + r[1].k + '</td></tr>';
+    });
+    $('emCompanies').innerHTML = h2 + '</table>';
+  }
+
+  function renderTeam() {
+    var h = '';
+    for (var i = 0; i < S.team.length; i += 2) {
+      h += '<div class="grid two">';
+      [S.team[i], S.team[i + 1]].forEach(function (m) {
+        if (!m) return;
+        h += '<div class="card"><h3>' + esc(m[0]) + '</h3>';
+        m[1].forEach(function (g) {
+          h += '<div class="okr"><strong>' + esc(g[0]) + '</strong>' + (g[1] ? ' <span class="src">' + esc(g[1]) + '</span>' : '');
+          g[2].forEach(function (p) {
+            h += '<div class="proj"><span class="projname">' + esc(p[0]) + '</span>' + (p[1] ? ' <span class="tag pill ' + (/no movement|no progress|stalled|slipped|not started/i.test(p[1]) ? 'r' : 'a') + '">' + esc(p[1]) + '</span>' : '') + '<ul class="clean">';
+            p[2].forEach(function (it) { h += '<li>' + esc(it[0]) + ' <span class="src">(' + esc(it[1]) + ')</span></li>'; });
+            h += '</ul></div>';
+          });
+          h += '</div>';
+        });
+        h += '</div>';
+      });
+      h += '</div>';
+    }
+    $('teamBody').innerHTML = h;
+    var a = '<ul class="signals">';
+    S.attn.forEach(function (r) {
+      var cls = r[0] === 'Risk' || r[0] === 'Blocked' ? 'r' : 'a';
+      a += '<li><span class="tag pill ' + cls + '">' + esc(r[0]) + '</span><span>' + esc(r[1]) + '</span></li>';
+    });
+    $('teamAttn').innerHTML = a + '</ul>';
+  }
+
+  /* ================= charts ================= */
+  var CH = {};
+  function kill(id) { if (CH[id]) { try { CH[id].destroy(); } catch (e) {} delete CH[id]; } }
+  var made = {};
+  function charts(tab, force) {
+    if (!window.Chart) return;
+    if (made[tab] && !force) return;
+    made[tab] = true;
+    Chart.defaults.font.family = getComputedStyle(document.body).fontFamily;
+    Chart.defaults.color = '#64708a';
+    var opt = { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } };
+    var lbls = S.months.map(mLbl);
+    try {
+      if (tab === 'overview') {
+        kill('chOv');
+        CH.chOv = new Chart($('chOv'), { data: { labels: lbls, datasets: [
+          { type: 'bar', label: 'Qualified leads', data: S.months.map(function (m, i) { return S.leads.us[i] + S.leads.row[i]; }), backgroundColor: '#2f6fed', borderRadius: 4, yAxisID: 'y' },
+          { type: 'line', label: 'Pipeline created ($)', data: S.pipe.amt, borderColor: '#7c3aed', backgroundColor: '#7c3aed', tension: 0.3, yAxisID: 'y2' }] },
+          options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } },
+            scales: { y: { position: 'left', beginAtZero: true }, y2: { position: 'right', grid: { drawOnChartArea: false }, ticks: { callback: fmtM } } } } });
+      }
+      if (tab === 'leads') {
+        kill('chLeads'); kill('chPipe');
+        CH.chLeads = new Chart($('chLeads'), { data: { labels: lbls, datasets: [
+          { type: 'bar', label: 'US', data: S.leads.us, backgroundColor: '#2f6fed', borderRadius: 4, stack: 's' },
+          { type: 'bar', label: 'ROW', data: S.leads.row, backgroundColor: '#0ea5a4', borderRadius: 4, stack: 's' },
+          { type: 'line', label: 'Converted to opp', data: S.leads.conv, borderColor: '#d97706', backgroundColor: '#d97706', tension: 0.3, pointRadius: 4 }] },
+          options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' },
+            tooltip: { callbacks: { footer: function (it) { var i = it[0].dataIndex, t = S.leads.us[i] + S.leads.row[i];
+              return 'Conversion: ' + S.leads.conv[i] + ' / ' + t + ' (' + (t ? Math.round(S.leads.conv[i] / t * 100) : 0) + '%)'; } } } },
+            scales: { x: { stacked: true }, y: { stacked: true } } } });
+        CH.chPipe = new Chart($('chPipe'), { type: 'bar', data: { labels: lbls, datasets: [{ label: 'Pipeline created ($)', data: S.pipe.amt, backgroundColor: '#7c3aed', borderRadius: 4 }] },
+          options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' },
+            tooltip: { callbacks: { label: function (c) { return fmtM(c.raw) + ' · ' + S.pipe.n[c.dataIndex] + ' deals'; } } } },
+            scales: { y: { ticks: { callback: fmtM } } } } });
+      }
+      if (tab === 'content') {
+        kill('chContent'); kill('chDepth');
+        var top = S.content.slice().sort(function (a, b) { return b[2] - a[2]; }).slice(0, 10);
+        CH.chContent = new Chart($('chContent'), { type: 'bar', data: { labels: top.map(function (c) { return c[0].length > 34 ? c[0].slice(0, 32) + '…' : c[0]; }),
+          datasets: [{ label: 'Views', data: top.map(function (c) { return c[2]; }), backgroundColor: '#2f6fed', borderRadius: 4 },
+            { label: 'Active users', data: top.map(function (c) { return c[3]; }), backgroundColor: '#0ea5a4', borderRadius: 4 }] },
+          options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } } });
+        var colors = { 'Blog': '#2f6fed', 'Web page': '#d97706', 'Whitepaper': '#7c3aed', 'Case Study': '#0ea5a4' };
+        CH.chDepth = new Chart($('chDepth'), { type: 'scatter', data: { datasets: Object.keys(colors).map(function (t) {
+          return { label: t, backgroundColor: colors[t], pointRadius: 6,
+            data: S.content.filter(function (c) { return c[1] === t; }).map(function (c) { return { x: c[2], y: c[4], t: c[0] }; }) }; }) },
+          options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' },
+            tooltip: { callbacks: { label: function (c) { return c.raw.t + ': ' + c.raw.x + ' views · ' + c.raw.y + 's'; } } } },
+            scales: { x: { title: { display: true, text: 'Views' } }, y: { title: { display: true, text: 'Avg engagement (sec)' } } } } });
+      }
+      if (tab === 'social') {
+        var SOC = [['Aug 25', 10, 17426, 1142], ['Sep 25', 22, 22131, 2145], ['Oct 25', 20, 16290, 902], ['Nov 25', 17, 12519, 229],
+          ['Dec 25', 21, 25878, 2015], ['Jan 26', 18, 21498, 1096], ['Feb 26', 17, 18546, 621], ['Mar 26', 20, 24846, 5426],
+          ['Apr 26', 19, 18677, 1365], ['May 26', 9, 15620, 815], ['Jun 26', 9, 15638, 2532], ['Jul 26*', 6, 10755, 1227]];
+        CH.chSocial = new Chart($('chSocial'), { data: { labels: SOC.map(function (m) { return m[0]; }), datasets: [
+          { type: 'bar', label: 'Impressions', data: SOC.map(function (m) { return m[2]; }), backgroundColor: '#2f6fed', borderRadius: 4, yAxisID: 'y' },
+          { type: 'line', label: 'Posts published', data: SOC.map(function (m) { return m[1]; }), borderColor: '#d97706', backgroundColor: '#d97706', tension: 0.3, pointRadius: 3, yAxisID: 'y2' }] },
+          options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } },
+            scales: { y: { position: 'left', ticks: { callback: function (v) { return (v / 1000) + 'K'; } } }, y2: { position: 'right', beginAtZero: true, grid: { drawOnChartArea: false } } } } });
+        CH.chClicks = new Chart($('chClicks'), { type: 'bar', data: { labels: SOC.map(function (m) { return m[0]; }),
+          datasets: [{ label: 'Clicks', data: SOC.map(function (m) { return m[3]; }), backgroundColor: '#0ea5a4', borderRadius: 4 }] }, options: opt });
+        CH.chExec = new Chart($('chExec'), { type: 'bar', data: { labels: ['Karthik', 'Sada', 'Sanket', 'Srikanth', 'Edward'], datasets: [
+          { label: 'Total interactions', data: [519, 127, 106, 74, 39], backgroundColor: '#2f6fed', borderRadius: 4 },
+          { label: 'Link clicks', data: [32, 102, 0, 0, 0], backgroundColor: '#d97706', borderRadius: 4 }] }, options: opt });
+      }
+    } catch (e) { if (window.console) console.error('chart error', tab, e); }
+  }
+
+  /* ================= tabs ================= */
+  var tabs = $('tabs');
+  var VALID = ['overview', 'leads', 'events', 'content', 'social', 'emailmkt', 'email', 'website', 'pmm', 'team'];
+  function show(name) {
+    var btns = tabs.getElementsByTagName('button');
+    for (var i = 0; i < btns.length; i++) btns[i].className = btns[i].getAttribute('data-t') === name ? 'active' : '';
+    var ps = document.querySelectorAll('section.panel');
+    for (var j = 0; j < ps.length; j++) ps[j].className = 'panel' + (ps[j].id === name ? ' active' : '');
+    try { localStorage.setItem('mktg-tab', name); } catch (e) {}
+    charts(name, false);
+  }
+  tabs.addEventListener('click', function (e) {
+    var el = e.target;
+    while (el && el !== tabs && el.tagName !== 'BUTTON') el = el.parentNode;
+    if (el && el.tagName === 'BUTTON') show(el.getAttribute('data-t'));
+  });
+
+  /* ================= live refresh plumbing ================= */
+  function mcp(tool, args) {
+    if (!window.cowork || !window.cowork.callMcpTool) return Promise.reject(new Error('live data is not available in this view'));
+    return window.cowork.callMcpTool(tool, args).then(function (r) {
+      if (r.isError) {
+        var m = '';
+        try { m = JSON.stringify(r.content).slice(0, 140); } catch (e) {}
+        throw new Error(m || 'tool call failed');
+      }
+      return r;
+    });
+  }
+  function toolText(r) {
+    var p = r.structuredContent;
+    if (!p) { try { p = JSON.parse(r.content[0].text); } catch (e) { p = null; } }
+    if (p && p.results && p.results[0] && typeof p.results[0].content === 'string') return p.results[0].content;
+    if (p && typeof p.results === 'string') return p.results;
+    if (p && typeof p.fileContent === 'string') return p.fileContent;
+    return (r.content && r.content[0] && r.content[0].text) || '';
+  }
+  function toolPayload(r) {
+    var p = r.structuredContent;
+    if (!p) { try { p = JSON.parse(r.content[0].text); } catch (e) { p = null; } }
+    return p;
+  }
+  function hsTSV(sql) {
+    return mcp(T_HS, { sql: sql, verbosityLevel: 'LOW', chatInsights: { userIntent: 'Dashboard section refresh', satisfaction: 'NEUTRAL' } }).then(function (r) {
+      var t = toolText(r);
+      var i = t.indexOf('Dataset TSV:');
+      if (i === -1) { if (/dataset is empty/i.test(t)) { var e = []; e.cols = []; return e; } throw new Error('no dataset in response'); }
+      var lines = t.slice(i + 12).trim().split('\n').filter(function (l) { return l.trim() && l.indexOf('Showing ') !== 0; });
+      var rows = lines.slice(1).map(function (l) { return l.split('\t'); });
+      rows.cols = (lines[0] || '').split('\t').map(function (h) { var m = h.match(/\[([^\]]+)\]/); return m ? m[1] : h.trim(); });
+      return rows;
+    });
+  }
+  function hsRecs(sql) {
+    return mcp(T_HS, { sql: sql, verbosityLevel: 'LOW', chatInsights: { userIntent: 'Dashboard section refresh', satisfaction: 'NEUTRAL' } }).then(function (r) {
+      var p = toolPayload(r);
+      var entries = (p && p.results) || [];
+      var recs = [];
+      entries.forEach(function (e) {
+        var c = typeof e === 'string' ? e : e.content;
+        if (typeof c !== 'string') return;
+        try { var o = JSON.parse(c); if (o && o.properties) recs.push(o.properties); } catch (err) {}
+      });
+      return recs;
+    });
+  }
+  function fmtD(d) { return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }); }
+  function wire(btnId, msgId, fn, asofId, asofText) {
+    var b = $(btnId), m = $(msgId);
+    if (!b) return;
+    b.addEventListener('click', function () {
+      b.disabled = true;
+      m.textContent = 'Refreshing…';
+      Promise.resolve().then(fn).then(function (txt) {
+        m.textContent = (txt || 'Refreshed') + ' · ' + new Date().toLocaleTimeString();
+        if (asofId && $(asofId)) $(asofId).textContent = typeof asofText === 'function' ? asofText() : asofText + ' · snapshot ' + fmtD(new Date());
+        renderOverview();
+        b.disabled = false;
+      }, function (e) {
+        m.textContent = 'Refresh failed (' + (e && e.message ? e.message : e) + '). Snapshot unchanged.';
+        b.disabled = false;
+      });
+    });
+  }
+
+  /* ---- Leads & Pipeline refresh ---- */
+  function tallyPivot(items, dimFn, valFn, months) {
+    var acc = {}, dims = {};
+    items.forEach(function (it) {
+      var d = dimFn(it); if (d == null) return;
+      d = clean(d);
+      dims[d] = dims[d] || {};
+      dims[d][it.m] = (dims[d][it.m] || 0) + (valFn ? valFn(it) : 1);
+    });
+    return Object.keys(dims).map(function (d) {
+      return [d, months.map(function (m) { return dims[d][m] || 0; })];
+    }).sort(function (a, b) {
+      var sa = a[1].reduce(function (x, y) { return x + y; }, 0), sb = b[1].reduce(function (x, y) { return x + y; }, 0);
+      return sb - sa;
+    });
+  }
+  function refreshLeads() {
+    var msgEl = $('msgLeads');
+    msgEl.textContent = 'Loading qualified leads from HubSpot… (1/2)';
+    return hsRecs('SELECT meeting_completed_date, region_cumulated_, core_vs_non_core_leads, channel, lead_ae, country___dropdown_list, hs_lead_status FROM CONTACT WHERE ' + LEAD_WHERE + ' LIMIT 500').then(function (lrecs) {
+      var leads = lrecs.map(function (r) {
+        var iso = r.meeting_completed_date_iso || '';
+        return { m: /^\d{4}-\d{2}/.test(iso) ? iso.slice(0, 7) + '-01' : null, region: r.region_cumulated_ || null, core: r.core_vs_non_core_leads || null,
+          channel: r.channel || null, ae: r.lead_ae || null, country: r.country___dropdown_list || null, conv: r.hs_lead_status === 'CONVERT_DEAL' };
+      }).filter(function (l) { return l.m && l.m >= '2026-04-01'; });
+      if (!leads.length) throw new Error('HubSpot returned no lead records');
+      msgEl.textContent = 'Loading pipeline from HubSpot… (2/2)';
+      return hsTSV('SELECT createdate, amount_in_home_currency, region__cumulated_, country, hubspot_owner_id, engagement_status, dealstage, core_vs_non_core_leads, CONTACT.channel, CONTACT.core_vs_non_core_leads FROM DEAL WHERE ' + DEAL_WHERE + ' LIMIT 500').then(function (rows) {
+        var cols = rows.cols || [];
+        var ix = function (n) { return cols.indexOf(n); };
+        var byId = {};
+        rows.forEach(function (r) {
+          var id = r[ix('hs_object_id')];
+          if (!id || isUn(id)) return;
+          var ch = ix('channel') >= 0 ? r[ix('channel')] : null;
+          var coreIdxs = [];
+          cols.forEach(function (n, ci) { if (n === 'core_vs_non_core_leads') coreIdxs.push(ci); });
+          var coreC = null, coreD = null;
+          coreIdxs.forEach(function (ci) {
+            var v = r[ci];
+            if (!v || isUn(v)) return;
+            var norm = /non.core/i.test(v) ? 'Non-core Lead' : 'Core Lead';
+            if (/\(/.test(v) || /Deal/i.test(v)) coreD = coreD || norm; else coreC = coreC || norm;
+          });
+          var created = r[ix('createdate')] || '';
+          if (!byId[id]) {
+            byId[id] = { m: /^\d{4}-\d{2}/.test(created) ? created.slice(0, 7) + '-01' : null,
+              amt: num(r[ix('amount_in_home_currency')]) || 0, region: r[ix('region__cumulated_')] || null,
+              coreC: coreC, coreD: coreD, country: r[ix('country')] || null,
+              owner: r[ix('hubspot_owner_id')] || null, eng: r[ix('engagement_status')] || null,
+              stage: r[ix('dealstage')] || null, channel: (ch && !isUn(ch)) ? ch : null };
+          } else {
+            if (!byId[id].channel && ch && !isUn(ch)) byId[id].channel = ch;
+            if (!byId[id].coreC && coreC) byId[id].coreC = coreC;
+            if (!byId[id].coreD && coreD) byId[id].coreD = coreD;
+          }
+        });
+        var deals = Object.keys(byId).map(function (k) { var d = byId[k]; d.core = d.coreC || d.coreD || null; return d; }).filter(function (d) { return d.m; });
+        if (!deals.length) throw new Error('HubSpot returned no deal records');
+
+        var mset = {};
+        leads.forEach(function (l) { mset[l.m] = 1; });
+        deals.forEach(function (d) { mset[d.m] = 1; });
+        var months = Object.keys(mset).sort();
+
+        var us = months.map(function () { return 0; }), row = months.map(function () { return 0; }), conv = months.map(function () { return 0; });
+        leads.forEach(function (l) {
+          var i = months.indexOf(l.m);
+          if (clean(l.region) === 'ROW') row[i]++; else us[i]++;
+          if (l.conv) conv[i]++;
+        });
+        var amt = months.map(function () { return 0; }), n = months.map(function () { return 0; });
+        deals.forEach(function (d) { var i = months.indexOf(d.m); amt[i] += d.amt; n[i]++; });
+
+        function convBy(dimFn) {
+          var a = {};
+          leads.forEach(function (l) { if (!l.conv) return; var d = dimFn(l); if (d == null) return; d = clean(d); a[d] = (a[d] || 0) + 1; });
+          return a;
+        }
+        function withConv(pivot, convMap) {
+          return pivot.map(function (r) { return [r[0], r[1], convMap[r[0]] || 0]; });
+        }
+        S.months = months;
+        S.leads = { us: us, row: row, conv: conv };
+        S.pipe = { amt: amt, n: n };
+        S.leadCuts = [
+          ['Region (Cumulated)', withConv(tallyPivot(leads, function (l) { return l.region; }, null, months), convBy(function (l) { return l.region; }))],
+          ['Core vs Non-core', withConv(tallyPivot(leads, function (l) { return l.core; }, null, months), convBy(function (l) { return l.core; }))],
+          ['Channel', withConv(tallyPivot(leads, function (l) { return l.channel; }, null, months), convBy(function (l) { return l.channel; }))],
+          ['Lead AE', withConv(tallyPivot(leads, function (l) { return l.ae; }, null, months), convBy(function (l) { return l.ae; }))]
+        ];
+        var cAcc = {}, cConv = convBy(function (l) { return l.country; });
+        leads.forEach(function (l) { if (!l.country) return; var d = clean(l.country); cAcc[d] = (cAcc[d] || 0) + 1; });
+        S.leadCountry = Object.keys(cAcc).map(function (k) { return [k, cAcc[k], cConv[k] || 0]; }).sort(function (a, b) { return b[1] - a[1]; });
+        S.dealPivots = [
+          ['Region (Cumulated)', tallyPivot(deals, function (d) { return d.region; }, function (d) { return d.amt; }, months)],
+          ['Core vs Non-core', tallyPivot(deals, function (d) { return d.core || 'Unassigned'; }, function (d) { return d.amt; }, months)]
+        ];
+        function totalsBy(items, dimFn, orderList) {
+          var a = {};
+          items.forEach(function (it) { var d = dimFn(it); d = d == null ? 'Unassigned' : clean(d); a[d] = a[d] || [0, 0]; a[d][0]++; a[d][1] += it.amt; });
+          var arr = Object.keys(a).map(function (k) { return [k, a[k][0], a[k][1]]; });
+          if (orderList) arr.sort(function (x, y) { return ((orderList.indexOf(x[0]) + 1) || 99) - ((orderList.indexOf(y[0]) + 1) || 99); });
+          else arr.sort(function (x, y) { return y[2] - x[2]; });
+          return arr;
+        }
+        S.dealTotals = [
+          ['Engagement Status', totalsBy(deals, function (d) { return d.eng; }, ENG_ORDER)],
+          ['Open deals by stage', totalsBy(deals.filter(function (d) { return d.eng === 'Open'; }), function (d) { return d.stage; }, STAGE_ORDER)],
+          ['Channel (via associated contact)', totalsBy(deals, function (d) { return d.channel; })],
+          ['Deal Owner (AE)', totalsBy(deals, function (d) { return d.owner; })],
+          ['Country', totalsBy(deals, function (d) { return d.country; })]
+        ];
+        S.dealRows = deals;
+        buildAeFilter();
+        renderLeadKpis(); renderLeadCuts(); renderDealCuts(); renderQuarterSummary();
+        charts('leads', true); charts('overview', true);
+        return 'Refreshed from HubSpot: ' + leads.length + ' qualified leads, ' + deals.length + ' deals';
+      });
+    });
+  }
+
+  /* ---- Events refresh ---- */
+  function refreshEvents() {
+    var msgEl = $('msgEvents');
+    var bySrc = function (rows) { var m = {}; rows.forEach(function (r) { if (!isUn(r[1])) m[r[0]] = num(r[1]); }); return m; };
+    msgEl.textContent = 'Loading event funnel… (1/3)';
+    return hsTSV("SELECT contact_source, COUNT(*) FROM CONTACT WHERE became_mgl_date BETWEEN '2026-04-01' AND '2027-03-31' GROUP BY contact_source").then(function (r1) {
+      var mgl = bySrc(r1);
+      return hsTSV("SELECT contact_source, COUNT(*) FROM CONTACT WHERE became_mrl_date BETWEEN '2026-04-01' AND '2027-03-31' GROUP BY contact_source").then(function (r2) {
+        var mrl = bySrc(r2);
+        msgEl.textContent = 'Loading event funnel… (2/3)';
+        return hsTSV("SELECT contact_source, COUNT(*) FROM CONTACT WHERE " + LEAD_WHERE + " GROUP BY contact_source").then(function (r3) {
+          var mql = bySrc(r3);
+          var srcs = {};
+          [mgl, mrl, mql].forEach(function (m) { Object.keys(m).forEach(function (k) { if (/event/i.test(k)) srcs[k] = 1; }); });
+          var funnel = Object.keys(srcs).map(function (s) { return [s, mgl[s] || 0, mrl[s] || 0, mql[s] || 0]; })
+            .sort(function (a, b) { return b[1] - a[1]; });
+          if (funnel.length) { S.funnel = funnel; renderFunnel(); }
+          msgEl.textContent = 'Loading event-channel deals… (3/3)';
+          return hsRecs('SELECT hs_object_id, dealname, amount_in_home_currency, dealstage, engagement_status, hubspot_owner_id, createdate FROM DEAL WHERE ' + DEAL_WHERE + " AND CONTACT.channel IN ('Events', 'Hosted Events') ORDER BY amount_in_home_currency DESC").then(function (recs) {
+            var seen = {}, deals = [];
+            recs.forEach(function (r) { if (r.hs_object_id && !seen[r.hs_object_id]) { seen[r.hs_object_id] = 1; deals.push(r); } });
+            if (deals.length) {
+              S.evDeals = deals.map(function (d) {
+                return [String(d.dealname || '').replace(/&amp;/g, '&'), num(d.amount_in_home_currency) || 0,
+                  STAGE[d.dealstage] || d.dealstage || '—', d.engagement_status || '—', OWNER[d.hubspot_owner_id] || '—', '…', false, d.hs_object_id];
+              });
+              renderEvDeals();
+            }
+            var chain = Promise.resolve(), done = 0;
+            deals.slice(0, 6).forEach(function (d, idx) {
+              chain = chain.then(function () {
+                return mcp(T_HS_SEARCH, { objectType: 'emails',
+                  filterGroups: [{ associatedWith: [{ objectType: 'deals', operator: 'EQUAL', objectIdValues: [Number(d.hs_object_id)] }] }],
+                  properties: ['hs_timestamp'], sorts: [{ propertyName: 'hs_timestamp', direction: 'DESCENDING' }], limit: 1,
+                  chatInsights: { userIntent: 'Dashboard section refresh', satisfaction: 'NEUTRAL' } }).then(function (r) {
+                  var p = toolPayload(r);
+                  var res = (p && p.results) || [];
+                  if (res.length && res[0].properties && res[0].properties.hs_timestamp) {
+                    var days = Math.round((Date.now() - new Date(res[0].properties.hs_timestamp)) / 864e5);
+                    S.evDeals[idx][5] = days + 'd ago'; S.evDeals[idx][6] = days > 21;
+                  } else { S.evDeals[idx][5] = 'none logged'; S.evDeals[idx][6] = true; }
+                  done++;
+                }, function () { S.evDeals[idx][5] = '—'; S.evDeals[idx][6] = false; });
+              });
+            });
+            return chain.then(function () {
+              renderEvDeals();
+              return 'Refreshed from HubSpot: ' + S.funnel.length + ' event sources, ' + deals.length + ' deals, email freshness on ' + done;
+            });
+          });
+        });
+      });
+    });
+  }
+
+  /* ---- Email marketing refresh ---- */
+  function refreshEmail() {
+    var msgEl = $('msgEmail');
+    msgEl.textContent = 'Loading segment rollup… (1/2)';
+    return hsTSV('SELECT email_marketing_category, COUNT(*), SUM(hs_email_delivered), SUM(hs_email_open), SUM(hs_email_click) FROM CONTACT WHERE email_marketing_category IS NOT NULL GROUP BY email_marketing_category').then(function (rows) {
+      var segs = rows.filter(function (r) { return !isUn(r[1]); }).map(function (r) {
+        var nm = String(r[0]).replace(/\s*\(Active Partners\)/, ' (Active)');
+        return [nm, num(r[1]) || 0, num(r[2]) || 0, num(r[3]) || 0, num(r[4]) || 0];
+      });
+      if (!segs.length) throw new Error('no segments returned');
+      S.segments = segs;
+      renderEmailKpis(); renderSegments();
+      msgEl.textContent = 'Loading engaged contacts… (2/2)';
+      return hsRecs('SELECT email, firstname, lastname, company, email_marketing_category, hs_email_delivered, hs_email_open, hs_email_click FROM CONTACT WHERE hs_email_open > 2 ORDER BY hs_email_open DESC LIMIT 300').then(function (recs) {
+        var contacts = recs.filter(function (r) { return r.email && !/@dataweave\.(com|ai)$/i.test(r.email); }).map(function (r) {
+          var name = [r.firstname, r.lastname].filter(Boolean).join(' ') || r.email;
+          return [name, r.company || '—', r.email_marketing_category ? String(r.email_marketing_category).replace(/\s*\(.*\)\s*$/, '') : 'Uncategorized',
+            num(r.hs_email_delivered) || 0, num(r.hs_email_open) || 0, num(r.hs_email_click) || 0];
+        });
+        if (contacts.length) { S.emContacts = contacts; buildCatDropdown(); renderEngagement(); }
+        return 'Refreshed from HubSpot: ' + segs.length + ' segments, ' + contacts.length + ' engaged contacts';
+      });
+    });
+  }
+
+  /* ---- Content sheet refresh ---- */
+  function refreshContent() {
+    var msgEl = $('msgContent');
+    msgEl.textContent = 'Reading the tracker sheet (large file, ~10s)…';
+    return mcp(T_DRIVE, { fileId: SHEET_CONTENT }).then(function (r) {
+      var text = toolText(r);
+      if (!text || text.length < 5000) throw new Error('sheet came back empty');
+      var norm = text.replace(/[‘’“”]/g, "'");
+      var updated = 0;
+      S.content.forEach(function (row) {
+        var key = row[0].replace(/[‘’“”]/g, "'").slice(0, 24);
+        var from = 0, bestV = -1, bestU = -1;
+        while (true) {
+          var i = norm.indexOf(key, from);
+          if (i === -1) break;
+          from = i + 1;
+          var windowTxt = norm.slice(i, i + 400);
+          var nums = windowTxt.match(/(\d[\d,]{0,9})(\.\d+)?/g) || [];
+          var ints = [];
+          for (var k = 0; k < nums.length && ints.length < 2; k++) {
+            var v = parseInt(nums[k].replace(/,/g, ''), 10);
+            if (!isNaN(v) && v > 0 && v < 1000000 && nums[k].indexOf('.') === -1) ints.push(v);
+          }
+          if (ints.length >= 2 && ints[0] >= ints[1] && ints[0] > bestV) { bestV = ints[0]; bestU = ints[1]; }
+        }
+        if (bestV >= row[2] && bestV < row[2] * 5 + 1000) { row[2] = bestV; row[3] = bestU; updated++; }
+        else if (bestV > 0 && bestV >= row[2] * 0.8) { updated++; }
+      });
+      if (updated < 8) throw new Error('could only match ' + updated + ' of 13 pieces in the sheet — the layout may have changed; ask me in chat to re-analyze');
+      renderContentTable(); charts('content', true);
+      return 'Refreshed from the tracker sheet: matched ' + updated + ' of 13 pieces';
+    });
+  }
+
+  /* ---- Social sheet refresh (best-effort) ---- */
+  function refreshSocial() {
+    var msgEl = $('msgSocial');
+    msgEl.textContent = 'Reading the social tracker (large file, ~10s)…';
+    return mcp(T_DRIVE, { fileId: SHEET_SOCIAL }).then(function (r) {
+      var text = toolText(r);
+      if (!text || text.length < 5000) throw new Error('sheet came back empty');
+      var labels = [['Posts Published', 'Posts'], ['Impressions', 'Impressions'], ['Clicks', 'Clicks'], ['Comments', 'Comments'], ['New Followers Gained', 'New followers']];
+      var found = 0;
+      labels.forEach(function (pair) {
+        var i = text.indexOf(pair[0]);
+        if (i === -1) return;
+        var windowTxt = text.slice(i, i + 260);
+        var nums = (windowTxt.match(/(\d[\d,]{0,8})/g) || []).map(function (x) { return parseInt(x.replace(/,/g, ''), 10); }).filter(function (v) { return !isNaN(v); });
+        if (nums.length >= 2) {
+          for (var q = 0; q < S.quarters.linkedin.length; q++) {
+            if (S.quarters.linkedin[q][0] === pair[1]) { S.quarters.linkedin[q][1] = nums[0]; S.quarters.linkedin[q][2] = nums[1]; found++; }
+          }
+        }
+      });
+      if (found < 3) throw new Error('could not locate the quarter rollup in the sheet — ask me in chat to re-analyze it');
+      renderQuarters();
+      return 'Refreshed quarter comparison from the sheet (' + found + ' of 5 metrics matched). Monthly series and insights still need chat re-analysis';
+    });
+  }
+
+  /* ---- Team refresh ---- */
+  function refreshTeam() {
+    var msgEl = $('msgTeam');
+    var since = new Date(Date.now() - 21 * 864e5).toISOString().slice(0, 10);
+    var digest = '';
+    msgEl.textContent = 'Reading Fathom meetings… (1/4)';
+    return mcp(T_FATHOM, { created_after: since + 'T00:00:00Z', include_summary: true, include_action_items: true, max_pages: 2 }).then(function (r) {
+      digest += '=== FATHOM MEETINGS (newest first, with summaries and action items) ===\n' + toolText(r).slice(0, 16000);
+    }, function () { digest += '=== FATHOM: unavailable ===\n'; }).then(function () {
+      msgEl.textContent = 'Reading Gmail… (2/4)';
+      return mcp(T_GMAIL, { query: 'from:@dataweave.com newer_than:21d -in:draft', pageSize: 50, view: 'THREAD_VIEW_MINIMAL' }).then(function (r) {
+        var p = toolPayload(r);
+        var lines = [], seen = {};
+        ((p && p.threads) || []).forEach(function (t) {
+          (t.messages || []).forEach(function (msg) {
+            var subj = (msg.subject || '').trim();
+            var from = (msg.sender || '').toLowerCase();
+            if (!subj || /^(updated invitation|canceled event|invitation|invitation:|declined|accepted|tentative)/i.test(subj)) return;
+            if (/(noreply|notifications|no-reply|^hr@|^arthi@)/.test(from)) return;
+            var key = subj.replace(/^(re|fwd|fw):\s*/i, '').toLowerCase();
+            if (seen[key]) return;
+            seen[key] = 1;
+            lines.push((msg.date || '').slice(0, 10) + ' ' + from.split('@')[0] + ': ' + subj + ' — ' + (msg.snippet || '').slice(0, 160));
+          });
+        });
+        digest += '\n\n=== INTERNAL EMAIL (noise filtered) ===\n' + lines.slice(0, 45).join('\n');
+      }, function () { digest += '\n\n=== GMAIL: unavailable ==='; });
+    }).then(function () {
+      msgEl.textContent = 'Reading Slack… (3/4)';
+      return mcp(T_SLACK, { query: 'after:' + since + ' -in:vera-alerts', sort: 'timestamp', sort_dir: 'desc', limit: 20, response_format: 'concise', include_context: false }).then(function (r) {
+        var t = toolText(r);
+        if (t && !/No results found/i.test(t)) digest += '\n\n=== SLACK (bot alert channels excluded) ===\n' + t.slice(0, 5000);
+        else digest += '\n\n=== SLACK: no human messages in window ===';
+      }, function () { digest += '\n\n=== SLACK: unavailable ==='; });
+    }).then(function () {
+      msgEl.textContent = 'Synthesizing per-person activity… (4/4)';
+      if (!window.cowork || !window.cowork.askClaude) throw new Error('AI synthesis unavailable in this view');
+      var prompt = 'Today is ' + new Date().toISOString().slice(0, 10) + '. Below are meeting recordings, internal email and Slack from DataWeave marketing, covering the last 3 weeks. Brief the head of marketing (Shailendra/Shai) on what each person actually did.\n\nOutput ONLY tagged lines, one per line:\n[TEAM|FirstName] one concrete activity with dates and artifact/account names (several lines per person are expected; use first names like Ishwarya, Aditi, Greg, Upasana, Latha; use [TEAM|You (Shai)] for Shailendra himself)\n[ATTN|Label] something needing the head of marketing: a pending approval, decision, blocker, or risk. Label is one word like Decision, Approval, Blocked, Risk, Ask, Prep.\n\nRules: marketing team focus (skip pure sales/CS delivery calls unless a marketing person acted); be specific; never invent; 4-8 lines per active person; 4-8 ATTN lines.';
+      return window.cowork.askClaude(prompt, [digest]).then(function (resp) {
+        var lines = String(resp).split('\n').map(function (l) { return l.trim(); }).filter(function (l) { return /^\[(TEAM|ATTN)/i.test(l); });
+        var byWho = {}, attn = [], order = [];
+        lines.forEach(function (l) {
+          var mT = l.match(/^\[TEAM\|([^\]]+)\]\s*(.+)$/i);
+          var mA = l.match(/^\[ATTN\|([^\]]+)\]\s*(.+)$/i);
+          if (mT) { var w = mT[1].trim(); if (!byWho[w]) { byWho[w] = []; order.push(w); } byWho[w].push([mT[2], 'refreshed ' + new Date().toISOString().slice(0, 10)]); }
+          else if (mA) attn.push([mA[1].trim(), mA[2]]);
+        });
+        if (order.length < 2) throw new Error('synthesis returned too little — snapshot kept');
+        var GROUP = 'Recent activity (live refresh)';
+        order.forEach(function (w) {
+          var person = null;
+          S.team.forEach(function (m) { if (m[0].toLowerCase().indexOf(w.toLowerCase().slice(0, 4)) >= 0) person = m; });
+          if (!person) { person = [w, []]; S.team.push(person); }
+          person[1] = person[1].filter(function (g) { return g[0] !== GROUP; });
+          person[1].unshift([GROUP, '', [['Live refresh', '', byWho[w]]]]);
+        });
+        if (attn.length) S.attn = attn;
+        renderTeam();
+        return 'Refreshed from Gmail + Slack + Fathom: ' + order.length + ' people updated (OKR groups kept), ' + attn.length + ' attention items';
+      });
+    });
+  }
+
+  wire('btnLeads', 'msgLeads', refreshLeads, 'asofLeads', 'Source: HubSpot');
+  wire('btnEvents', 'msgEvents', refreshEvents, 'asofEvents', 'Source: HubSpot');
+  wire('btnEmail', 'msgEmail', refreshEmail, 'asofEmail', 'Source: HubSpot');
+  wire('btnContent', 'msgContent', refreshContent, 'asofContent', 'Source: Content performance tracker (Google Sheet)');
+  wire('btnSocial', 'msgSocial', refreshSocial, 'asofSocial', 'Source: Social media tracker (Google Sheet)');
+  wire('btnTeam', 'msgTeam', refreshTeam, 'asofTeam', function () { return 'Sources: Gmail + Slack + Fathom · window ' + fmtD(new Date(Date.now() - 21 * 864e5)) + ' – ' + fmtD(new Date()); });
+
+  /* ================= boot: render everything from embedded snapshots ================= */
+  buildAeFilter();
+  renderLeadKpis(); renderLeadCuts(); renderDealCuts(); renderQuarterSummary();
+  renderFunnel(); renderEvDeals();
+  renderContentTable(); renderQuarters();
+  renderEmailKpis(); renderSegments(); renderAbm();
+  buildCatDropdown(); renderEngagement();
+  $('emCat').addEventListener('change', renderEngagement);
+  renderTeam();
+  renderOverview();
+  var saved = null;
+  try { saved = localStorage.getItem('mktg-tab'); } catch (e) {}
+  show(VALID.indexOf(saved) >= 0 ? saved : 'overview');
+  if (window.console) console.log('Dashboard rendered from embedded snapshots. Refresh buttons pull live per section.');
+})();
+</script>
+</body>
+</html>
