@@ -676,36 +676,38 @@ select{font-size:13px;padding:5px 8px;border:1px solid var(--line);border-radius
     $('hlEvents').textContent = f[0] + ' MGLs → ' + f[1] + ' MRLs → ' + f[2] + ' MQLs; ' + fmtM(evA) + ' event pipeline';
   }
   function renderQuarterSummary() {
-    var Q1 = { '04': 1, '05': 1, '06': 1 };
+    var QOF = { '04': 0, '05': 0, '06': 0, '07': 1, '08': 1, '09': 1, '10': 2, '11': 2, '12': 2, '01': 3, '02': 3, '03': 3 };
     function split(perMonth) {
-      var q1 = 0, q2 = 0;
-      S.months.forEach(function (m, i) { var v = perMonth[i] || 0; if (Q1[m.slice(5, 7)]) q1 += v; else q2 += v; });
-      return [q1, q2];
+      var q = [0, 0, 0, 0];
+      S.months.forEach(function (m, i) { q[QOF[m.slice(5, 7)]] += perMonth[i] || 0; });
+      return q;
     }
     function findCut(name) { var out = null; S.leadCuts.forEach(function (c) { if (c[0] === name) out = c[1]; }); return out || []; }
     function findPivot(name) { var out = null; S.dealPivots.forEach(function (c) { if (c[0] === name) out = c[1]; }); return out || []; }
-    function pipeOf(pivot, re) { var amt = 0; pivot.forEach(function (r) { if (re.test(r[0])) r[1].forEach(function (v) { amt += v || 0; }); }); return amt; }
+    function pipeOf(pivot, re, q3plus) { var amt = 0; pivot.forEach(function (r) { if (re.test(r[0])) r[1].forEach(function (v, i) { if (!q3plus || QOF[S.months[i].slice(5, 7)] >= 2) amt += v || 0; }); }); return amt; }
     function table(title, rows) {
-      var h = '<table><tr><th>' + title + '</th><th class="num">Q1 (Apr–Jun)</th><th class="num">Q2 (QTD)</th><th class="num">Total Leads</th><th class="num">Total Opps</th><th class="num">Conversion</th><th class="num">Pipeline ($)</th></tr>';
-      var tq1 = 0, tq2 = 0, topp = 0, tpipe = 0;
+      var h = '<table><tr><th>' + title + '</th><th class="num">Q1 (Apr–Jun)</th><th class="num">Q2 (Jul–Sep)</th><th class="num">Q3 (QTD)</th><th class="num">Total Leads</th><th class="num">Total Opps</th><th class="num">Conversion</th><th class="num">Pipeline ($)</th><th class="num">Q3 Pipeline</th></tr>';
+      var tq = [0, 0, 0, 0], topp = 0, tpipe = 0, tpipe3 = 0;
       rows.forEach(function (r) {
-        var q = r[1] ? split(r[1]) : [null, null];
-        var tot = q[0] === null ? null : q[0] + q[1];
-        tq1 += q[0] || 0; tq2 += q[1] || 0; topp += r[2] || 0; tpipe += r[3];
-        h += '<tr><td>' + esc(r[0]) + '</td><td class="num">' + (q[0] === null ? '—' : q[0]) + '</td><td class="num">' + (q[1] === null ? '—' : q[1]) + '</td><td class="num">' + (tot === null ? '—' : tot) + '</td><td class="num">' + (r[2] === null ? '—' : r[2]) + '</td><td class="num">' + (tot ? Math.round(r[2] / tot * 100) + '%' : '—') + '</td><td class="num">' + fmtM(r[3]) + '</td></tr>';
+        var q = r[1] ? split(r[1]) : null;
+        var tot = q ? q[0] + q[1] + q[2] + q[3] : null;
+        if (q) { tq[0] += q[0]; tq[1] += q[1]; tq[2] += q[2] + q[3]; }
+        topp += r[2] || 0; tpipe += r[3]; tpipe3 += r[4] || 0;
+        h += '<tr><td>' + esc(r[0]) + '</td><td class="num">' + (q ? q[0] : '—') + '</td><td class="num">' + (q ? q[1] : '—') + '</td><td class="num">' + (q ? (q[2] + q[3]) : '—') + '</td><td class="num">' + (tot === null ? '—' : tot) + '</td><td class="num">' + (r[2] === null ? '—' : r[2]) + '</td><td class="num">' + (tot ? Math.round(r[2] / tot * 100) + '%' : '—') + '</td><td class="num">' + fmtM(r[3]) + '</td><td class="num">' + (r[4] ? fmtM(r[4]) : '—') + '</td></tr>';
       });
-      h += '<tr><td><strong>Total</strong></td><td class="num"><strong>' + tq1 + '</strong></td><td class="num"><strong>' + tq2 + '</strong></td><td class="num"><strong>' + (tq1 + tq2) + '</strong></td><td class="num"><strong>' + topp + '</strong></td><td class="num"><strong>' + ((tq1 + tq2) ? Math.round(topp / (tq1 + tq2) * 100) + '%' : '—') + '</strong></td><td class="num"><strong>' + fmtM(tpipe) + '</strong></td></tr></table>';
+      var ttot = tq[0] + tq[1] + tq[2];
+      h += '<tr><td><strong>Total</strong></td><td class="num"><strong>' + tq[0] + '</strong></td><td class="num"><strong>' + tq[1] + '</strong></td><td class="num"><strong>' + tq[2] + '</strong></td><td class="num"><strong>' + ttot + '</strong></td><td class="num"><strong>' + topp + '</strong></td><td class="num"><strong>' + (ttot ? Math.round(topp / ttot * 100) + '%' : '—') + '</strong></td><td class="num"><strong>' + fmtM(tpipe) + '</strong></td><td class="num"><strong>' + fmtM(tpipe3) + '</strong></td></tr></table>';
       return h;
     }
     var regCut = findCut('Region (Cumulated)'), regPiv = findPivot('Region (Cumulated)');
-    var regRows = regCut.map(function (r) { return [r[0], r[1], r[2], pipeOf(regPiv, new RegExp('^' + r[0] + '$'))]; });
+    var regRows = regCut.map(function (r) { var re = new RegExp('^' + r[0] + '$'); return [r[0], r[1], r[2], pipeOf(regPiv, re), pipeOf(regPiv, re, true)]; });
     var coreCut = findCut('Core vs Non-core'), corePiv = findPivot('Core vs Non-core');
     var coreRows = coreCut.map(function (r) {
-      return [r[0].replace(' Lead', ''), r[1], r[2], pipeOf(corePiv, /^Core/i.test(r[0]) ? /^Core/i : /^Non.core/i)];
+      var re2 = /^Core/i.test(r[0]) ? /^Core/i : /^Non.core/i; return [r[0].replace(' Lead', ''), r[1], r[2], pipeOf(corePiv, re2), pipeOf(corePiv, re2, true)];
     });
     var un = pipeOf(corePiv, /^Unassigned$/);
-    if (un) coreRows.push(['Unassigned (deals only)', null, null, un]);
-    $('qSummary').innerHTML = table('Region', regRows) + '<div style="height:10px"></div>' + table('Core vs Non-Core', coreRows) + '<div class="note">Pipeline = new-business deals created since Apr 1, deduplicated. Core/Non-Core for pipeline comes from each deal’s associated contact (lead-level tag), falling back to the deal-level tag when no contact is associated; Unassigned = neither tag set. Recomputes on refresh.</div>';
+    if (un) coreRows.push(['Unassigned (deals only)', null, null, un, pipeOf(corePiv, /^Unassigned$/, true)]);
+    $('qSummary').innerHTML = table('Region', regRows) + '<div style="height:10px"></div>' + table('Core vs Non-Core', coreRows) + '<div class="note">FY quarters: Q1 Apr–Jun, Q2 Jul–Sep, Q3 from Oct 1 (QTD). Pipeline = new-business deals created since Apr 1, deduplicated; Q3 Pipeline = deals created Oct 1 or later. Core/Non-Core for pipeline comes from each deal’s associated contact (lead-level tag), falling back to the deal-level tag when no contact is associated; Unassigned = neither tag set. Recomputes on refresh.</div>';
   }
   function renderLeadKpis() {
     var tot = 0, conv = 0, i;
